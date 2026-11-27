@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>DON'T HURT THE CATS.</title>
+  <title>BURROW ARCADE — Play & Don't Hurt The Cats</title>
   <style>
     /* ==========================================================================
-       CORE VARIABLES & RESET (Overridden dynamically by GAME_CONFIG.visuals)
+       CORE THEME VARIABLES (Easily overridden by ARCADE_CONFIG.visuals)
        ========================================================================== */
     :root {
       --bg-color: #16241b;
@@ -39,29 +39,22 @@
 
     html, body {
       width: 100%;
-      height: 100%;
-      overflow: hidden;
+      min-height: 100%;
       background-color: var(--bg-color);
       color: var(--cream);
       font-family: var(--font-main);
-      touch-action: manipulation;
-    }
-
-    /* Subtle organic grain & vignette background */
-    body {
+      overflow-x: hidden;
       background-image:
-        radial-gradient(circle at 50% 45%, rgba(45, 71, 53, 0.35) 0%, rgba(16, 27, 20, 0.92) 100%),
+        radial-gradient(circle at 50% 15%, rgba(45, 71, 53, 0.36) 0%, rgba(16, 27, 20, 0.94) 100%),
         repeating-radial-gradient(circle at 0 0, transparent 0, var(--bg-texture) 12px),
         repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 2px, transparent 2px, transparent 6px);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
     }
 
-    body.playing {
+    body.game-playing {
+      overflow: hidden;
       cursor: none;
     }
-    body.playing * {
+    body.game-playing * {
       cursor: none !important;
     }
 
@@ -71,10 +64,9 @@
     #app-wrapper {
       position: relative;
       width: 100%;
-      height: 100%;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       transition: transform 0.05s linear;
     }
 
@@ -82,13 +74,13 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      z-index: 900;
+      z-index: 950;
       opacity: 0;
       transition: opacity 0.12s ease-out;
     }
 
     /* ==========================================================================
-       CUSTOM TACTICAL CROSSHAIR
+       CUSTOM TACTICAL CROSSHAIR (ACTIVE DURING GAMEPLAY)
        ========================================================================== */
     #crosshair {
       position: fixed;
@@ -103,7 +95,7 @@
       transition: width 0.12s ease, height 0.12s ease, opacity 0.15s ease;
     }
 
-    body.playing #crosshair.active {
+    body.game-playing #crosshair.active {
       opacity: 1;
     }
 
@@ -127,13 +119,430 @@
     }
 
     /* ==========================================================================
-       MINIMALIST HUD (TOP BAR)
+       SHARED TOP NAVIGATION BAR
        ========================================================================== */
+    #topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      background: rgba(18, 21, 19, 0.78);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(242, 236, 225, 0.08);
+      z-index: 200;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: none;
+      border: none;
+      color: var(--cream);
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill-btn {
+      background: var(--olive-surface);
+      border: 1px solid var(--olive-border);
+      color: var(--cream);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s, opacity 0.15s;
+    }
+
+    .pill-btn:hover {
+      background: #314736;
+      border-color: var(--cream-muted);
+    }
+
+    .pill-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--charcoal);
+    }
+
+    .pill-btn.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .pill-btn.muted {
+      opacity: 0.45;
+      text-decoration: line-through;
+    }
+
+    /* ==========================================================================
+       HOMEPAGE VIEW
+       ========================================================================== */
+    #homepage-view {
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    #homepage-view.hidden {
+      display: none;
+    }
+
+    .hero-banner {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: 24px;
+      align-items: center;
+      background: rgba(37, 54, 41, 0.72);
+      border: 1px solid var(--olive-border);
+      border-radius: 16px;
+      padding: clamp(22px, 4vw, 36px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    .hero-kicker {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      background: rgba(217, 107, 39, 0.14);
+      border: 1px solid rgba(217, 107, 39, 0.35);
+      padding: 5px 10px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 4.6vw, 3.1rem);
+      font-weight: 900;
+      line-height: 1.04;
+      letter-spacing: -0.025em;
+      margin-bottom: 12px;
+    }
+
+    .hero-copy {
+      color: var(--cream-muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .hero-cta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn-hero {
+      padding: 13px 22px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.12s, background 0.15s;
+    }
+
+    .btn-hero.main {
+      background: var(--accent);
+      color: var(--charcoal);
+    }
+
+    .btn-hero.main:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+
+    .btn-hero.ghost {
+      background: rgba(18, 21, 19, 0.55);
+      color: var(--cream);
+      border: 1px solid var(--olive-border);
+    }
+
+    .btn-hero.ghost:hover {
+      border-color: var(--cream-muted);
+    }
+
+    /* Interactive Funny Toy Box on Homepage */
+    .pet-toy-card {
+      background: rgba(18, 21, 19, 0.65);
+      border: 1px solid rgba(242, 236, 225, 0.1);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .pet-toy-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--cream-muted);
+    }
+
+    .pet-counter {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .pet-stage {
+      position: relative;
+      width: 100%;
+      height: 150px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 50% 65%, rgba(59, 40, 28, 0.55), rgba(16, 27, 20, 0.85));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .pet-sprite-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .pet-sprite-btn:active {
+      transform: scale(0.86) rotate(-4deg);
+    }
+
+    .pet-sprite-btn img {
+      width: 82px;
+      height: 82px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5));
+    }
+
+    .pet-fallback-badge {
+      display: none;
+      width: 78px;
+      height: 78px;
+      border-radius: 12px;
+      border: 2px dashed var(--accent);
+      background: var(--olive-surface);
+      color: var(--cream);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pet-sprite-btn.img-error img { display: none; }
+    .pet-sprite-btn.img-error .pet-fallback-badge { display: flex; }
+
+    .pet-speech {
+      min-height: 28px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--cream);
+    }
+
+    .pet-controls {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .pet-controls button {
+      flex: 1;
+    }
+
+    /* Section Headings */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .section-sub {
+      font-size: 0.85rem;
+      color: var(--cream-muted);
+    }
+
+    /* Games Grid */
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
+      gap: 18px;
+    }
+
+    .game-card {
+      background: rgba(37, 54, 41, 0.68);
+      border: 1px solid var(--olive-border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .game-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .game-card.locked {
+      opacity: 0.82;
+      border-style: dashed;
+    }
+
+    .game-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .badge-status {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(217, 107, 39, 0.2);
+      color: var(--accent);
+    }
+
+    .badge-status.soon {
+      background: rgba(242, 236, 225, 0.08);
+      color: var(--cream-muted);
+    }
+
+    .game-card-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .game-card-desc {
+      font-size: 0.86rem;
+      color: var(--cream-muted);
+      line-height: 1.5;
+    }
+
+    .game-card-meta {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--cream);
+      background: rgba(18, 21, 19, 0.45);
+      padding: 8px 10px;
+      border-radius: 6px;
+    }
+
+    /* Funny Arcade Ticker & Mini Soundboard */
+    .fun-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .fun-tile {
+      background: rgba(18, 21, 19, 0.55);
+      border: 1px solid rgba(242, 236, 225, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .fun-tile h3 {
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .fun-tile p {
+      font-size: 0.82rem;
+      color: var(--cream-muted);
+      line-height: 1.45;
+    }
+
+    /* ==========================================================================
+       GAME STAGE VIEW (DON'T HURT THE CATS)
+       ========================================================================== */
+    #game-stage-view {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: calc(100vh - 58px);
+    }
+
+    #game-stage-view.hidden {
+      display: none;
+    }
+
     #hud {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 24px;
+      padding: 12px 24px;
       background: linear-gradient(180deg, rgba(18, 21, 19, 0.85) 0%, rgba(18, 21, 19, 0) 100%);
       z-index: 50;
       gap: 12px;
@@ -143,7 +552,8 @@
     .hud-group {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 18px;
+      flex-wrap: wrap;
     }
 
     .stat-box {
@@ -152,7 +562,7 @@
     }
 
     .stat-label {
-      font-size: 0.68rem;
+      font-size: 0.66rem;
       text-transform: uppercase;
       letter-spacing: 0.14em;
       color: var(--cream-muted);
@@ -161,7 +571,7 @@
 
     .stat-value {
       font-family: var(--font-mono);
-      font-size: 1.35rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: var(--cream);
       line-height: 1.1;
@@ -179,10 +589,10 @@
       background-color: var(--olive-surface);
       border: 1px solid var(--olive-border);
       font-family: var(--font-mono);
-      font-size: 0.9rem;
+      font-size: 0.86rem;
       font-weight: 700;
       color: var(--cream-muted);
-      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, color 0.2s, border-color 0.2s;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, color 0.2s;
     }
 
     #combo-badge.active {
@@ -197,46 +607,13 @@
       border-radius: 999px;
       background: rgba(37, 54, 41, 0.85);
       border: 1px solid var(--olive-border);
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--cream);
     }
 
-    .hud-audio-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .icon-btn {
-      background: var(--olive-surface);
-      border: 1px solid var(--olive-border);
-      color: var(--cream);
-      padding: 7px 11px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, opacity 0.15s;
-    }
-
-    .icon-btn:hover {
-      background: #314736;
-      border-color: var(--cream-muted);
-    }
-
-    .icon-btn.muted {
-      opacity: 0.45;
-      text-decoration: line-through;
-    }
-
-    /* ==========================================================================
-       ARENA & RABBIT HOLES (3x2 FORMATION)
-       ========================================================================== */
     #arena {
       flex: 1;
       display: flex;
@@ -255,20 +632,19 @@
       max-width: 860px;
       align-items: end;
       justify-items: center;
-      padding-top: 40px;
+      padding-top: 32px;
     }
 
     .hole-slot {
       position: relative;
-      width: clamp(120px, 24vw, 195px);
-      height: clamp(145px, 27vw, 225px);
+      width: clamp(110px, 24vw, 195px);
+      height: clamp(140px, 27vw, 225px);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
     }
 
-    /* Back rim of the burrow */
     .hole-back {
       position: absolute;
       bottom: 8px;
@@ -281,7 +657,6 @@
       z-index: 1;
     }
 
-    /* Clipping mask so character physically rises out of the hole */
     .hole-mask {
       position: absolute;
       bottom: 22px;
@@ -297,7 +672,6 @@
       pointer-events: none;
     }
 
-    /* Front earthen lip overlapping the bottom of the emerging character */
     .hole-front-lip {
       position: absolute;
       bottom: 4px;
@@ -311,7 +685,6 @@
       box-shadow: 0 8px 14px rgba(0, 0, 0, 0.5);
     }
 
-    /* Subtle grass tufts around hole */
     .hole-tuft {
       position: absolute;
       bottom: 14px;
@@ -323,9 +696,6 @@
       pointer-events: none;
     }
 
-    /* ==========================================================================
-       CHARACTER SPRITE & ANIMATIONS
-       ========================================================================== */
     .character-unit {
       position: relative;
       width: var(--char-width);
@@ -353,33 +723,27 @@
       pointer-events: auto;
     }
 
-    /* Fallback badge ONLY shown if user hasn't uploaded the PNG yet */
     .missing-asset-tag {
       display: none;
-      padding: 18px 10px;
+      padding: 16px 8px;
       background: var(--olive-surface);
       border: 2px dashed var(--accent);
       color: var(--cream);
       font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
       text-align: center;
       border-radius: 10px 10px 0 0;
-      width: 92px;
-      height: 115px;
+      width: 88px;
+      height: 110px;
       align-items: center;
       justify-content: center;
       pointer-events: auto;
     }
 
-    .character-unit.img-error img {
-      display: none;
-    }
-    .character-unit.img-error .missing-asset-tag {
-      display: flex;
-    }
+    .character-unit.img-error img { display: none; }
+    .character-unit.img-error .missing-asset-tag { display: flex; }
 
-    /* Subtle idle breathing/sway when fully emerged */
     @keyframes charIdle {
       0%, 100% { transform: translateY(0%) rotate(0deg); }
       35% { transform: translateY(-3%) rotate(-1.5deg); }
@@ -390,7 +754,6 @@
       animation: charIdle 0.65s ease-in-out infinite;
     }
 
-    /* Hit reaction */
     .character-unit.shot-hit {
       filter: brightness(2.2) saturate(0.2);
       transform: translateY(12%) scale(0.86) rotate(8deg) !important;
@@ -398,9 +761,7 @@
       pointer-events: none !important;
     }
 
-    /* ==========================================================================
-       FLOATING COMBAT EFFECTS (MUZZLE FLASH, IMPACT, FLOATING SCORE)
-       ========================================================================== */
+    /* Floating Combat FX */
     .muzzle-flash {
       position: fixed;
       width: 44px;
@@ -460,21 +821,20 @@
     }
 
     /* ==========================================================================
-       OVERLAY SCREENS (MAIN MENU & GAME OVER)
+       OVERLAY SCREENS (GAME PRE-START & GAME OVER)
        ========================================================================== */
     .overlay-screen {
       position: fixed;
       inset: 0;
-      background: rgba(14, 21, 16, 0.91);
+      background: rgba(14, 21, 16, 0.9);
       backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
       z-index: 500;
       opacity: 1;
-      transition: opacity 0.28s ease, visibility 0.28s ease;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
     }
 
     .overlay-screen.hidden {
@@ -489,60 +849,54 @@
       background: var(--olive-surface);
       border: 1px solid var(--olive-border);
       border-radius: 14px;
-      padding: clamp(24px, 5vw, 38px);
+      padding: clamp(22px, 5vw, 36px);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
       text-align: center;
-      animation: panelEnter 0.38s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes panelEnter {
-      from { opacity: 0; transform: translateY(18px) scale(0.97); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .game-title {
-      font-size: clamp(1.85rem, 5vw, 2.55rem);
+      font-size: clamp(1.75rem, 5vw, 2.4rem);
       font-weight: 900;
       letter-spacing: -0.02em;
       line-height: 1.05;
       color: var(--cream);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .game-subtitle {
-      font-size: 0.98rem;
+      font-size: 0.95rem;
       color: var(--accent);
       font-weight: 600;
-      letter-spacing: 0.02em;
-      margin-bottom: 22px;
+      margin-bottom: 18px;
     }
 
     .rules-card {
       background: rgba(18, 21, 19, 0.55);
       border: 1px solid rgba(242, 236, 225, 0.08);
       border-radius: 10px;
-      padding: 14px 16px;
-      margin-bottom: 20px;
+      padding: 13px 16px;
+      margin-bottom: 18px;
       text-align: left;
-      font-size: 0.86rem;
+      font-size: 0.85rem;
       line-height: 1.55;
       color: var(--cream-muted);
     }
 
-    .rules-card strong {
-      color: var(--cream);
-    }
+    .rules-card strong { color: var(--cream); }
+    .rules-card .warn { color: var(--accent); font-weight: 700; }
 
-    .rules-card .warn {
-      color: var(--accent);
-      font-weight: 700;
-    }
-
-    .menu-records {
+    .stats-row-3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      margin-bottom: 22px;
+      margin-bottom: 18px;
+    }
+
+    .stats-row-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
     .record-item {
@@ -553,17 +907,17 @@
     }
 
     .record-item .label {
-      font-size: 0.65rem;
+      font-size: 0.64rem;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: var(--cream-muted);
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .record-item .val {
       font-family: var(--font-mono);
-      font-size: 1.1rem;
+      font-size: 1.08rem;
       font-weight: 700;
       color: var(--cream);
     }
@@ -571,11 +925,11 @@
     .audio-settings-box {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       background: rgba(18, 21, 19, 0.45);
-      padding: 14px 16px;
+      padding: 13px 16px;
       border-radius: 10px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .slider-row {
@@ -584,11 +938,10 @@
       justify-content: space-between;
       gap: 12px;
       font-size: 0.82rem;
-      color: var(--cream);
     }
 
     .slider-row label {
-      min-width: 90px;
+      min-width: 84px;
       text-align: left;
       font-weight: 600;
     }
@@ -597,15 +950,12 @@
       flex: 1;
       accent-color: var(--accent);
       cursor: pointer;
-      height: 5px;
-      background: var(--charcoal);
-      border-radius: 4px;
     }
 
     .btn-primary {
       width: 100%;
-      padding: 15px 24px;
-      font-size: 1.05rem;
+      padding: 14px 22px;
+      font-size: 1rem;
       font-weight: 800;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -622,14 +972,10 @@
       transform: translateY(-1px);
     }
 
-    .btn-primary:active {
-      transform: translateY(1px);
-    }
-
     .btn-secondary {
       width: 100%;
-      padding: 13px 20px;
-      font-size: 0.9rem;
+      padding: 12px 18px;
+      font-size: 0.88rem;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -639,39 +985,34 @@
       border-radius: 8px;
       cursor: pointer;
       margin-top: 10px;
-      transition: background 0.15s, border-color 0.15s;
     }
 
     .btn-secondary:hover {
       background: rgba(242, 236, 225, 0.08);
-      border-color: var(--cream-muted);
     }
 
-    /* Game Over Specific Styling */
     .gameover-panel {
       border-color: var(--danger);
-      box-shadow: 0 24px 70px rgba(184, 41, 41, 0.28);
     }
 
     .gameover-title {
-      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      font-size: clamp(1.75rem, 5vw, 2.3rem);
       font-weight: 900;
       color: #ef5350;
-      letter-spacing: 0.02em;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .gameover-sub {
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-style: italic;
       color: var(--cream-muted);
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     .culprit-preview {
-      width: 84px;
-      height: 84px;
-      margin: 0 auto 18px;
+      width: 78px;
+      height: 78px;
+      margin: 0 auto 14px;
       border-radius: 50%;
       background: rgba(184, 41, 41, 0.16);
       border: 2px solid rgba(239, 83, 80, 0.5);
@@ -679,7 +1020,7 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      padding: 8px;
+      padding: 6px;
     }
 
     .culprit-preview img {
@@ -688,26 +1029,12 @@
       object-fit: contain;
     }
 
-    .final-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 22px;
-    }
-
-    /* Mobile Adjustments */
-    @media (max-width: 600px) {
-      #hud {
-        padding: 12px 14px;
-      }
-      .hud-group {
-        gap: 12px;
-      }
-      .stat-value {
-        font-size: 1.1rem;
+    @media (max-width: 760px) {
+      .hero-banner {
+        grid-template-columns: 1fr;
       }
       #holes-grid {
-        gap: 28px 14px;
+        gap: 24px 12px;
       }
       #crosshair {
         display: none !important;
@@ -718,7 +1045,7 @@
 <body>
   <div id="screen-flash"></div>
 
-  <!-- Custom Tactical Crosshair -->
+  <!-- Custom Crosshair (Shown during active gameplay) -->
   <div id="crosshair" aria-hidden="true">
     <svg viewBox="0 0 60 60">
       <circle class="ch-ring" cx="30" cy="30" r="20" fill="none" stroke="#f2ece1" stroke-width="1.75" stroke-dasharray="10 6" />
@@ -731,52 +1058,155 @@
   </div>
 
   <div id="app-wrapper">
-    <!-- Top Gameplay HUD -->
-    <header id="hud">
-      <div class="hud-group">
-        <div class="stat-box">
-          <span class="stat-label">Score</span>
-          <span class="stat-value accent" id="hud-score">0</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Best</span>
-          <span class="stat-value" id="hud-best">0</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-label">Accuracy</span>
-          <span class="stat-value" id="hud-accuracy">100%</span>
-        </div>
-        <div id="combo-badge">1x COMBO</div>
-      </div>
+    <!-- Persistent Top Bar -->
+    <header id="topbar">
+      <button type="button" class="brand-link" id="btn-go-home">
+        <span class="brand-dot"></span>
+        <span id="brand-name">BURROW ARCADE</span>
+      </button>
 
-      <div class="hud-group">
-        <span id="difficulty-pill">INITIAL</span>
-        <div class="hud-audio-controls">
-          <button type="button" class="icon-btn" id="btn-toggle-music">Music: ON</button>
-          <button type="button" class="icon-btn" id="btn-toggle-sfx">SFX: ON</button>
-        </div>
+      <div class="top-actions">
+        <button type="button" class="pill-btn primary" id="btn-nav-cats">Don't Hurt The Cats</button>
+        <button type="button" class="pill-btn" id="btn-nav-games">All Games</button>
+        <button type="button" class="pill-btn" id="btn-toggle-music">Music: ON</button>
+        <button type="button" class="pill-btn" id="btn-toggle-sfx">SFX: ON</button>
       </div>
     </header>
 
-    <!-- Main 3x2 Rabbit Hole Arena -->
-    <main id="arena">
-      <div id="holes-grid"></div>
+    <!-- ======================================================================
+         FUNNY & INTERACTIVE ARCADE HOMEPAGE
+         ====================================================================== -->
+    <main id="homepage-view">
+      <section class="hero-banner">
+        <div>
+          <span class="hero-kicker">Arcade Hub • Static &amp; Expandable</span>
+          <h1 class="hero-title">DON'T HURT THE CATS.</h1>
+          <p class="hero-copy">
+            Welcome to your personal arcade lobby. Shoot Ragib, Tanha, and Neha for points—never touch Payesh or Melow unless you enjoy instant humiliation—and drop in more games whenever you build them.
+          </p>
+          <div class="hero-cta-row">
+            <button type="button" class="btn-hero main" id="hero-play-btn">Play Now</button>
+            <button type="button" class="btn-hero ghost" id="hero-roast-btn">Roast My Aim</button>
+          </div>
+        </div>
+
+        <!-- Interactive Cat-Petting Apology Box -->
+        <div class="pet-toy-card">
+          <div class="pet-toy-header">
+            <span>Apology Petting Booth</span>
+            <span class="pet-counter" id="pet-count">0 PETS</span>
+          </div>
+
+          <div class="pet-stage" id="pet-stage">
+            <button type="button" class="pet-sprite-btn" id="pet-cat-btn" title="Pet the cat">
+              <img id="pet-cat-img" src="assets/characters/payesh.png" alt="Payesh" />
+              <span class="pet-fallback-badge" id="pet-fallback">PAYESH</span>
+            </button>
+          </div>
+
+          <div class="pet-speech" id="pet-speech">Tap the cat to bribe them before your run.</div>
+
+          <div class="pet-controls">
+            <button type="button" class="pill-btn" id="btn-switch-pet">Switch Cat</button>
+            <button type="button" class="pill-btn" id="btn-random-quip">Random Dare</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Game Library Section (Populate future games in ARCADE_CONFIG.games) -->
+      <section id="games-section">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Arcade Cabinet</h2>
+            <p class="section-sub">Your flagship game is ready; add more entries to <code>ARCADE_CONFIG.games</code> anytime.</p>
+          </div>
+          <span class="pill-btn" id="total-games-badge">1 Ready</span>
+        </div>
+        <div class="games-grid" id="games-grid"></div>
+      </section>
+
+      <!-- Funny Interactive Micro-Widgets -->
+      <section>
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Pre-Game Warmup &amp; Nonsense</h2>
+            <p class="section-sub">Purely for laughs while you hype yourself up.</p>
+          </div>
+        </div>
+        <div class="fun-strip">
+          <div class="fun-tile">
+            <div>
+              <h3>Reflex Excuse Generator</h3>
+              <p id="excuse-text">"My mouse slipped because a mosquito distracted me at 120ms."</p>
+            </div>
+            <button type="button" class="pill-btn" id="btn-new-excuse">Generate Excuse</button>
+          </div>
+
+          <div class="fun-tile">
+            <div>
+              <h3>Cat Threat Level</h3>
+              <p id="threat-text">Payesh &amp; Melow are currently plotting innocent naps.</p>
+            </div>
+            <button type="button" class="pill-btn" id="btn-check-threat">Check Threat</button>
+          </div>
+
+          <div class="fun-tile">
+            <div>
+              <h3>Arcade Sound Test</h3>
+              <p>Test your synthesized or uploaded gunshot &amp; combo sound effects.</p>
+            </div>
+            <button type="button" class="pill-btn" id="btn-test-sfx">Fire Test Shot</button>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <!-- ======================================================================
+         GAME STAGE VIEW ("DON'T HURT THE CATS")
+         ====================================================================== -->
+    <section id="game-stage-view" class="hidden">
+      <div id="hud">
+        <div class="hud-group">
+          <div class="stat-box">
+            <span class="stat-label">Score</span>
+            <span class="stat-value accent" id="hud-score">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Best</span>
+            <span class="stat-value" id="hud-best">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Accuracy</span>
+            <span class="stat-value" id="hud-accuracy">100%</span>
+          </div>
+          <div id="combo-badge">1x COMBO</div>
+        </div>
+
+        <div class="hud-group">
+          <span id="difficulty-pill">INITIAL</span>
+          <button type="button" class="pill-btn" id="btn-exit-to-hub">Lobby</button>
+        </div>
+      </div>
+
+      <div id="arena">
+        <div id="holes-grid"></div>
+      </div>
+    </section>
   </div>
 
-  <!-- MAIN MENU OVERLAY -->
-  <section id="menu-overlay" class="overlay-screen">
+  <!-- GAME PRE-START OVERLAY -->
+  <section id="menu-overlay" class="overlay-screen hidden">
     <div class="panel">
-      <h1 class="game-title">DON'T HURT THE CATS.</h1>
+      <h2 class="game-title">DON'T HURT THE CATS.</h2>
       <p class="game-subtitle">Three targets. Two cats. One terrible mistake.</p>
 
       <div class="rules-card">
         <div><strong>SHOOT TARGETS (+10 PTS):</strong> Ragib, Tanha, Neha</div>
         <div><span class="warn">PROTECT THE CATS (INSTANT LOSS):</span> Payesh &amp; Melow</div>
-        <div style="margin-top:6px;">Chain consecutive hits to multiply your score. Missing resets your combo.</div>
+        <div style="margin-top:6px;">Chain consecutive hits to build multipliers. Missing resets your combo.</div>
       </div>
 
-      <div class="menu-records">
+      <div class="stats-row-3">
         <div class="record-item">
           <span class="label">High Score</span>
           <span class="val" id="menu-best-score">0</span>
@@ -803,6 +1233,7 @@
       </div>
 
       <button type="button" class="btn-primary" id="btn-start">START GAME</button>
+      <button type="button" class="btn-secondary" id="btn-menu-back-hub">BACK TO HOMEPAGE</button>
     </div>
   </section>
 
@@ -812,11 +1243,11 @@
       <h2 class="gameover-title">YOU HURT THE CAT.</h2>
       <p class="gameover-sub">Unforgivable.</p>
 
-      <div class="culprit-preview" id="culprit-box">
+      <div class="culprit-preview">
         <img id="culprit-img" src="" alt="Protected Cat" />
       </div>
 
-      <div class="final-stats-grid">
+      <div class="stats-row-2">
         <div class="record-item">
           <span class="label">Final Score</span>
           <span class="val" id="go-score">0</span>
@@ -836,30 +1267,80 @@
       </div>
 
       <button type="button" class="btn-primary" id="btn-retry">RETRY</button>
-      <button type="button" class="btn-secondary" id="btn-main-menu">MAIN MENU</button>
+      <button type="button" class="btn-secondary" id="btn-go-hub">HOMEPAGE</button>
     </div>
   </section>
 
   <script>
     /**
      * ============================================================================
-     * CENTRALIZED GAME CONFIGURATION
-     * Edit values here to customize characters, images, sounds, difficulty, and
-     * visuals without touching any other code.
+     * CENTRALIZED ARCADE & GAME CONFIGURATION
+     * Add future games under `games`, update characters/audio/difficulty/visuals
+     * all in one spot without rewriting UI or game logic.
      * ============================================================================
      */
-    const GAME_CONFIG = {
-      // 1. CHARACTER CUSTOMIZATION
+    const ARCADE_CONFIG = {
+      hubTitle: "BURROW ARCADE",
+
+      // Add new games here as you create them!
+      // Set `status: "playable"` with `action: "dont-hurt-the-cats"` (or custom URL/handler),
+      // or `status: "coming-soon"` for upcoming slots.
+      games: [
+        {
+          id: "dont-hurt-the-cats",
+          title: "DON'T HURT THE CATS.",
+          tag: "FLAGSHIP ARCADE",
+          status: "playable",
+          description: "Fast-paced 6-burrow reflex shooter. Rack up combos on Ragib, Tanha, and Neha while sparing Payesh and Melow.",
+          meta: "6 HOLES • 5 CHARACTERS • ENDLESS"
+        },
+        {
+          id: "slot-midnight-snack",
+          title: "MIDNIGHT FRIDGE RAID",
+          tag: "PLANNED SLOT #2",
+          status: "coming-soon",
+          description: "Reserved slot for your next arcade game. Sneak snacks past sleepy housemates before dawn.",
+          meta: "READY TO ADD IN ARCADE_CONFIG.games"
+        },
+        {
+          id: "slot-combo-dodger",
+          title: "ONE MORE ROUND",
+          tag: "PLANNED SLOT #3",
+          status: "coming-soon",
+          description: "Reserved slot for a future mini-game or high-score challenge on your GitHub Pages site.",
+          meta: "READY TO ADD IN ARCADE_CONFIG.games"
+        }
+      ],
+
+      funnyLines: {
+        dares: [
+          "Dare: Reach 3x combo without panicking when Payesh pops up.",
+          "Dare: Beat your best accuracy while laughing at your own misses.",
+          "Dare: Survive Level 3 without accidentally blasting a fluffy cat."
+        ],
+        excuses: [
+          "\"My mouse slipped because a mosquito distracted me at 120ms.\"",
+          "\"The cat jumped into my bullet—total entrapment.\"",
+          "\"I was testing the immediate game-over screen. On purpose.\"",
+          "\"My 16GB DDR5 RAM was busy thinking philosophical thoughts.\""
+        ],
+        threats: [
+          "Payesh & Melow are currently plotting innocent naps.",
+          "Warning: Cats look extra innocent right before ruining your run.",
+          "Feline security level: Maximum fluff, zero mercy."
+        ]
+      },
+
       characters: [
         {
           id: "ragib",
           name: "Ragib",
-          type: "human", // "human" = shoot for points | "cat" = protected (instant game over)
+          type: "human",
           image: "assets/characters/ragib.png",
           scale: 1.0,
-          offsetX: 0, // horizontal adjustment in px
-          offsetY: 0, // vertical adjustment in px
-          frequency: 1.0, // relative spawn weight
+          offsetX: 0,
+          offsetY: 0,
+          frequency: 1.0,
           appearSound: "appear"
         },
         {
@@ -908,7 +1389,6 @@
         }
       ],
 
-      // 2. AUDIO FILE PATHS (Automatically falls back to built-in Web Audio synth if missing)
       audio: {
         bgm: "assets/audio/bgm.mp3",
         gunshot: "assets/audio/gunshot.mp3",
@@ -924,13 +1404,9 @@
         defaultSfxVolume: 0.80
       },
 
-      // 3. GAMEPLAY & DIFFICULTY PROGRESSION
       gameplay: {
-        holeCount: 6, // 3 columns x 2 rows
+        holeCount: 6,
         basePoints: 10,
-        timedModeSeconds: 0, // 0 = endless until a cat is shot; set > 0 to enable countdown
-
-        // Combo multiplier thresholds: [consecutiveHits, multiplier]
         comboTiers: [
           { hits: 1, multiplier: 1 },
           { hits: 2, multiplier: 2 },
@@ -938,20 +1414,17 @@
           { hits: 5, multiplier: 5 },
           { hits: 8, multiplier: 8 }
         ],
-
-        // Difficulty tiers unlocked by score
         difficultyLevels: [
-          { name: "INITIAL", minScore: 0,   visibilityMs: 650, minIntervalMs: 420, maxIntervalMs: 850, maxSimultaneous: 2, flashChance: 0.08 },
-          { name: "LEVEL 2", minScore: 80,  visibilityMs: 500, minIntervalMs: 340, maxIntervalMs: 700, maxSimultaneous: 2, flashChance: 0.12 },
-          { name: "LEVEL 3", minScore: 220, visibilityMs: 400, minIntervalMs: 280, maxIntervalMs: 580, maxSimultaneous: 3, flashChance: 0.16 },
-          { name: "LEVEL 4", minScore: 450, visibilityMs: 300, minIntervalMs: 220, maxIntervalMs: 470, maxSimultaneous: 3, flashChance: 0.20 },
-          { name: "LEVEL 5", minScore: 750, visibilityMs: 220, minIntervalMs: 170, maxIntervalMs: 380, maxSimultaneous: 3, flashChance: 0.24 },
-          { name: "EXTREME", minScore: 1200,visibilityMs: 160, minIntervalMs: 130, maxIntervalMs: 300, maxSimultaneous: 4, flashChance: 0.28 },
-          { name: "INSANE",  minScore: 1800,visibilityMs: 120, minIntervalMs: 95,  maxIntervalMs: 230, maxSimultaneous: 4, flashChance: 0.32 }
+          { name: "INITIAL", minScore: 0,    visibilityMs: 650, minIntervalMs: 420, maxIntervalMs: 850, maxSimultaneous: 2, flashChance: 0.08 },
+          { name: "LEVEL 2", minScore: 80,   visibilityMs: 500, minIntervalMs: 340, maxIntervalMs: 700, maxSimultaneous: 2, flashChance: 0.12 },
+          { name: "LEVEL 3", minScore: 220,  visibilityMs: 400, minIntervalMs: 280, maxIntervalMs: 580, maxSimultaneous: 3, flashChance: 0.16 },
+          { name: "LEVEL 4", minScore: 450,  visibilityMs: 300, minIntervalMs: 220, maxIntervalMs: 470, maxSimultaneous: 3, flashChance: 0.20 },
+          { name: "LEVEL 5", minScore: 750,  visibilityMs: 220, minIntervalMs: 170, maxIntervalMs: 380, maxSimultaneous: 3, flashChance: 0.24 },
+          { name: "EXTREME", minScore: 1200, visibilityMs: 160, minIntervalMs: 130, maxIntervalMs: 300, maxSimultaneous: 4, flashChance: 0.28 },
+          { name: "INSANE",  minScore: 1800, visibilityMs: 120, minIntervalMs: 95,  maxIntervalMs: 230, maxSimultaneous: 4, flashChance: 0.32 }
         ]
       },
 
-      // 4. VISUAL & ANIMATION SETTINGS
       visuals: {
         backgroundColor: "#16241b",
         holeRimColor: "#3b281c",
@@ -959,16 +1432,14 @@
         fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         characterWidthPx: 120,
         crosshairSizePx: 46,
-        animationSpeedMultiplier: 1.0, // > 1 faster, < 1 slower
-        screenShakeIntensity: 7 // pixels
+        animationSpeedMultiplier: 1.0,
+        screenShakeIntensity: 7
       }
     };
 
     /**
      * ============================================================================
-     * HYBRID AUDIO ENGINE (HTML5 Audio + Web Audio API Procedural Synthesizer)
-     * Plays custom MP3s if uploaded; seamlessly synthesizes arcade BGM & SFX if
-     * files are absent so the game is immediately playable out of the box.
+     * HYBRID AUDIO ENGINE (Custom MP3 + Web Audio Synthesizer Fallback)
      * ============================================================================
      */
     class SoundEngine {
@@ -985,7 +1456,6 @@
         this.synthBgmTimer = null;
         this.synthStep = 0;
         this.isBgmPlaying = false;
-
         this.sfxCache = {};
         this._preloadAudioFiles();
       }
@@ -1001,7 +1471,6 @@
       }
 
       _preloadAudioFiles() {
-        // Preload BGM
         const bgm = new Audio();
         bgm.src = this.config.bgm;
         bgm.loop = true;
@@ -1014,7 +1483,6 @@
           this.bgmAvailable = false;
         }, { once: true });
 
-        // Preload SFX
         const sfxKeys = ["gunshot", "hit", "miss", "appear", "disappear", "catWarning", "catHit", "gameOver", "button"];
         sfxKeys.forEach((key) => {
           const path = this.config[key];
@@ -1078,11 +1546,10 @@
         }
       }
 
-      // Driving dark electronic arcade synth fallback loop (132 BPM 16th-note pulse)
       _startSynthBgm() {
         if (!this.ctx) return;
         this.synthStep = 0;
-        const bassNotes = [55, 55, 65.41, 55, 73.42, 65.41, 49.0, 55]; // A1 dark minor groove
+        const bassNotes = [55, 55, 65.41, 55, 73.42, 65.41, 49.0, 55];
         const stepMs = 113;
 
         this.synthBgmTimer = setInterval(() => {
@@ -1091,7 +1558,6 @@
           const step = this.synthStep % 16;
           const vol = this.musicVolume * 0.28;
 
-          // Punchy kick on 0, 4, 8, 12
           if (step % 4 === 0) {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
@@ -1105,7 +1571,6 @@
             osc.stop(now + 0.14);
           }
 
-          // Off-beat closed hi-hat
           if (step % 2 === 1) {
             const bufferSize = this.ctx.sampleRate * 0.03;
             const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -1121,12 +1586,10 @@
             const gain = this.ctx.createGain();
             gain.gain.setValueAtTime(vol * 0.35, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
-
             noise.connect(filter).connect(gain).connect(this.ctx.destination);
             noise.start(now);
           }
 
-          // Deep rolling synth bassline
           if (step % 2 === 0) {
             const freq = bassNotes[(step / 2) % bassNotes.length];
             const osc = this.ctx.createOscillator();
@@ -1135,11 +1598,9 @@
 
             osc.type = "sawtooth";
             osc.frequency.setValueAtTime(freq, now);
-
             filter.type = "lowpass";
             filter.frequency.setValueAtTime(340, now);
             filter.frequency.exponentialRampToValueAtTime(110, now + 0.16);
-
             gain.gain.setValueAtTime(vol * 0.85, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
 
@@ -1156,7 +1617,6 @@
         if (this.sfxMuted || this.sfxVolume <= 0.01) return;
         this._initContext();
 
-        // Use custom MP3 if loaded
         if (this.sfxCache[name]) {
           const clone = this.sfxCache[name].cloneNode();
           clone.volume = this.sfxVolume;
@@ -1164,14 +1624,12 @@
           return;
         }
 
-        // Otherwise synthesize crisp Web Audio arcade SFX
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
         const v = this.sfxVolume;
 
         switch (name) {
           case "gunshot": {
-            // Sharp punchy transient + white noise burst
             const bufferSize = this.ctx.sampleRate * 0.12;
             const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
             const data = buffer.getChannelData(0);
@@ -1271,7 +1729,6 @@
           }
           case "catHit":
           case "gameOver": {
-            // Dramatic heavy sub-bass drop
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = "sawtooth";
@@ -1302,15 +1759,15 @@
 
     /**
      * ============================================================================
-     * MAIN ARCADE GAME CONTROLLER
+     * ARCADE HUB & GAME ENGINE
      * ============================================================================
      */
-    class DontHurtTheCatsGame {
+    class ArcadePlatform {
       constructor(config) {
         this.config = config;
         this.sound = new SoundEngine(config.audio);
 
-        // Runtime State
+        // Game state
         this.isRunning = false;
         this.score = 0;
         this.shotsFired = 0;
@@ -1320,13 +1777,26 @@
         this.currentMultiplier = 1;
         this.currentDifficulty = config.gameplay.difficultyLevels[0];
 
-        // Timers & Hole Tracking
+        // Funny homepage pet toy state
+        this.petCount = 0;
+        this.activePetIndex = 3; // payesh
         this.spawnLoopTimer = null;
-        this.holes = []; // Array of hole state objects
+        this.holes = [];
         this.STORAGE_KEY = "dhtc_records_v1";
 
-        // DOM References
         this.dom = {
+          brandName: document.getElementById("brand-name"),
+          homepageView: document.getElementById("homepage-view"),
+          gameStageView: document.getElementById("game-stage-view"),
+          gamesGrid: document.getElementById("games-grid"),
+          totalGamesBadge: document.getElementById("total-games-badge"),
+          petCount: document.getElementById("pet-count"),
+          petCatBtn: document.getElementById("pet-cat-btn"),
+          petCatImg: document.getElementById("pet-cat-img"),
+          petFallback: document.getElementById("pet-fallback"),
+          petSpeech: document.getElementById("pet-speech"),
+          excuseText: document.getElementById("excuse-text"),
+          threatText: document.getElementById("threat-text"),
           wrapper: document.getElementById("app-wrapper"),
           flash: document.getElementById("screen-flash"),
           crosshair: document.getElementById("crosshair"),
@@ -1349,13 +1819,16 @@
           menuBestCombo: document.getElementById("menu-best-combo")
         };
 
-        this._applyVisualConfig();
+        this._applyVisuals();
+        this._renderGamesGrid();
+        this._setupPetBooth();
         this._buildRabbitHoles();
         this._bindEvents();
         this._refreshRecordDisplays();
       }
 
-      _applyVisualConfig() {
+      _applyVisuals() {
+        this.dom.brandName.textContent = this.config.hubTitle;
         const v = this.config.visuals;
         const root = document.documentElement.style;
         root.setProperty("--bg-color", v.backgroundColor);
@@ -1367,6 +1840,133 @@
         root.setProperty("--anim-speed", v.animationSpeedMultiplier);
       }
 
+      /* ------------------------------------------------------------------------
+         HOMEPAGE RENDERING & INTERACTIVE TOYS
+         ------------------------------------------------------------------------ */
+      _renderGamesGrid() {
+        const games = this.config.games || [];
+        const playableCount = games.filter((g) => g.status === "playable").length;
+        this.dom.totalGamesBadge.textContent = `${playableCount} Playable • ${games.length} Slots`;
+        this.dom.gamesGrid.innerHTML = "";
+
+        games.forEach((game) => {
+          const card = document.createElement("article");
+          const isPlayable = game.status === "playable";
+          card.className = `game-card ${isPlayable ? "" : "locked"}`;
+
+          card.innerHTML = `
+            <div>
+              <div class="game-card-top">
+                <span class="stat-label">${game.tag || "ARCADE"}</span>
+                <span class="badge-status ${isPlayable ? "" : "soon"}">${isPlayable ? "PLAYABLE" : "COMING SOON"}</span>
+              </div>
+              <h3 class="game-card-title">${game.title}</h3>
+              <p class="game-card-desc">${game.description}</p>
+            </div>
+            <div>
+              <div class="game-card-meta" style="margin-bottom:10px;">${game.meta || ""}</div>
+              <button type="button" class="${isPlayable ? "btn-primary" : "btn-secondary"}" data-game-id="${game.id}">
+                ${isPlayable ? "LAUNCH GAME" : "SLOT RESERVED"}
+              </button>
+            </div>
+          `;
+
+          const btn = card.querySelector("button");
+          btn.addEventListener("click", () => {
+            this.sound.playSfx("button");
+            if (isPlayable && game.id === "dont-hurt-the-cats") {
+              this.openGameLobby();
+            } else {
+              this.dom.excuseText.textContent = `"${game.title} isn't uploaded yet—add it to ARCADE_CONFIG.games whenever you're ready!"`;
+            }
+          });
+
+          this.dom.gamesGrid.appendChild(card);
+        });
+      }
+
+      _setupPetBooth() {
+        const catChars = this.config.characters.filter((c) => c.type === "cat");
+        if (catChars.length === 0) return;
+
+        const syncCatSprite = () => {
+          const cat = catChars[this.activePetIndex % catChars.length];
+          this.dom.petCatBtn.classList.remove("img-error");
+          this.dom.petCatImg.src = cat.image;
+          this.dom.petCatImg.alt = cat.name;
+          this.dom.petFallback.textContent = cat.name.toUpperCase();
+        };
+
+        this.dom.petCatImg.addEventListener("error", () => {
+          this.dom.petCatBtn.classList.add("img-error");
+        });
+
+        syncCatSprite();
+
+        const quips = [
+          "Purr approved. Still no shooting allowed.",
+          "You bribed the cat. Doesn't make your aim better.",
+          "Soft paws detected. Reflexes remain questionable.",
+          "Cat accepts tribute and judges your high score silently."
+        ];
+
+        this.dom.petCatBtn.addEventListener("click", () => {
+          this.petCount++;
+          this.dom.petCount.textContent = `${this.petCount} ${this.petCount === 1 ? "PET" : "PETS"}`;
+          this.sound.playSfx("catWarning");
+          this.dom.petSpeech.textContent = quips[this.petCount % quips.length];
+        });
+
+        document.getElementById("btn-switch-pet").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.activePetIndex = (this.activePetIndex + 1) % catChars.length;
+          syncCatSprite();
+          const chosen = catChars[this.activePetIndex % catChars.length];
+          this.dom.petSpeech.textContent = `Switched to ${chosen.name}. Handle with extreme care.`;
+        });
+
+        document.getElementById("btn-random-quip").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          const dares = this.config.funnyLines.dares;
+          this.dom.petSpeech.textContent = dares[Math.floor(Math.random() * dares.length)];
+        });
+      }
+
+      /* ------------------------------------------------------------------------
+         VIEW NAVIGATION (HOMEPAGE <-> GAME STAGE)
+         ------------------------------------------------------------------------ */
+      showHomepage() {
+        this.isRunning = false;
+        this._clearAllTimers();
+        this._resetAllHoles();
+        this.sound.stopMusic();
+
+        document.body.classList.remove("game-playing");
+        this.dom.crosshair.classList.remove("active");
+        this.dom.menuOverlay.classList.add("hidden");
+        this.dom.gameoverOverlay.classList.add("hidden");
+        this.dom.gameStageView.classList.add("hidden");
+        this.dom.homepageView.classList.remove("hidden");
+        this._refreshRecordDisplays();
+      }
+
+      openGameLobby() {
+        this.isRunning = false;
+        this._clearAllTimers();
+        this._resetAllHoles();
+
+        document.body.classList.remove("game-playing");
+        this.dom.crosshair.classList.remove("active");
+        this.dom.homepageView.classList.add("hidden");
+        this.dom.gameStageView.classList.remove("hidden");
+        this.dom.gameoverOverlay.classList.add("hidden");
+        this._refreshRecordDisplays();
+        this.dom.menuOverlay.classList.remove("hidden");
+      }
+
+      /* ------------------------------------------------------------------------
+         RABBIT HOLES & GAMEPLAY ENGINE
+         ------------------------------------------------------------------------ */
       _buildRabbitHoles() {
         this.dom.grid.innerHTML = "";
         this.holes = [];
@@ -1395,12 +1995,8 @@
           const fallbackTag = document.createElement("div");
           fallbackTag.className = "missing-asset-tag";
 
-          img.addEventListener("error", () => {
-            unit.classList.add("img-error");
-          });
-          img.addEventListener("load", () => {
-            unit.classList.remove("img-error");
-          });
+          img.addEventListener("error", () => unit.classList.add("img-error"));
+          img.addEventListener("load", () => unit.classList.remove("img-error"));
 
           unit.appendChild(img);
           unit.appendChild(fallbackTag);
@@ -1431,24 +2027,16 @@
       }
 
       _bindEvents() {
-        // Crosshair tracking (Desktop mouse)
         window.addEventListener("mousemove", (e) => {
           this.dom.crosshair.style.left = `${e.clientX}px`;
           this.dom.crosshair.style.top = `${e.clientY}px`;
           if (this.isRunning) {
             this.dom.crosshair.classList.add("active");
           }
-
-          // Subtle hover feedback over active characters
           const hoveredChar = e.target.closest(".character-unit.active");
-          if (hoveredChar) {
-            this.dom.crosshair.classList.add("hover-target");
-          } else {
-            this.dom.crosshair.classList.remove("hover-target");
-          }
+          this.dom.crosshair.classList.toggle("hover-target", Boolean(hoveredChar));
         });
 
-        // Unified Pointer Shooting (Works identically on Desktop Mouse & Mobile Touch)
         this.dom.arena.addEventListener("pointerdown", (e) => {
           if (!this.isRunning) return;
           if (e.button !== undefined && e.button !== 0 && e.pointerType === "mouse") return;
@@ -1456,10 +2044,66 @@
           this._handleShot(e);
         });
 
-        // Menu & HUD Buttons
+        // Navigation buttons
+        document.getElementById("btn-go-home").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.showHomepage();
+        });
+
+        document.getElementById("btn-nav-cats").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.openGameLobby();
+        });
+
+        document.getElementById("btn-nav-games").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.showHomepage();
+          document.getElementById("games-section").scrollIntoView({ behavior: "smooth" });
+        });
+
+        document.getElementById("hero-play-btn").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.openGameLobby();
+          this.startGame();
+        });
+
+        document.getElementById("hero-roast-btn").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          const excuses = this.config.funnyLines.excuses;
+          this.dom.excuseText.textContent = excuses[Math.floor(Math.random() * excuses.length)];
+        });
+
+        document.getElementById("btn-new-excuse").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          const excuses = this.config.funnyLines.excuses;
+          this.dom.excuseText.textContent = excuses[Math.floor(Math.random() * excuses.length)];
+        });
+
+        document.getElementById("btn-check-threat").addEventListener("click", () => {
+          this.sound.playSfx("catWarning");
+          const threats = this.config.funnyLines.threats;
+          this.dom.threatText.textContent = threats[Math.floor(Math.random() * threats.length)];
+        });
+
+        document.getElementById("btn-test-sfx").addEventListener("click", () => {
+          this.sound.playSfx("gunshot");
+          setTimeout(() => this.sound.playSfx("hit"), 90);
+        });
+
+        // Game controls
         document.getElementById("btn-start").addEventListener("click", () => {
           this.sound.playSfx("button");
           this.startGame();
+        });
+
+        document.getElementById("btn-menu-back-hub").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.showHomepage();
+        });
+
+        document.getElementById("btn-exit-to-hub").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.showHomepage();
         });
 
         document.getElementById("btn-retry").addEventListener("click", () => {
@@ -1467,24 +2111,19 @@
           this.startGame();
         });
 
-        document.getElementById("btn-main-menu").addEventListener("click", () => {
+        document.getElementById("btn-go-hub").addEventListener("click", () => {
           this.sound.playSfx("button");
-          this.showMainMenu();
+          this.showHomepage();
         });
 
-        // Audio Sliders & Mute Toggles
+        // Audio controls
         const sliderMusic = document.getElementById("slider-music");
         const sliderSfx = document.getElementById("slider-sfx");
         const btnMusic = document.getElementById("btn-toggle-music");
         const btnSfx = document.getElementById("btn-toggle-sfx");
 
-        sliderMusic.addEventListener("input", (e) => {
-          this.sound.setMusicVolume(e.target.value);
-        });
-
-        sliderSfx.addEventListener("input", (e) => {
-          this.sound.setSfxVolume(e.target.value);
-        });
+        sliderMusic.addEventListener("input", (e) => this.sound.setMusicVolume(e.target.value));
+        sliderSfx.addEventListener("input", (e) => this.sound.setSfxVolume(e.target.value));
 
         btnMusic.addEventListener("click", () => {
           const muted = this.sound.toggleMusicMute();
@@ -1499,9 +2138,6 @@
         });
       }
 
-      /* ------------------------------------------------------------------------
-         GAME LIFECYCLE
-         ------------------------------------------------------------------------ */
       startGame() {
         this._clearAllTimers();
         this._resetAllHoles();
@@ -1515,28 +2151,15 @@
         this.currentMultiplier = 1;
         this.currentDifficulty = this.config.gameplay.difficultyLevels[0];
 
-        document.body.classList.add("playing");
+        this.dom.homepageView.classList.add("hidden");
+        this.dom.gameStageView.classList.remove("hidden");
         this.dom.menuOverlay.classList.add("hidden");
         this.dom.gameoverOverlay.classList.add("hidden");
+        document.body.classList.add("game-playing");
 
         this._updateHud();
         this.sound.startMusic();
-
-        // Schedule initial chaotic wave
         this._scheduleNextSpawn(280);
-      }
-
-      showMainMenu() {
-        this.isRunning = false;
-        this._clearAllTimers();
-        this._resetAllHoles();
-        this.sound.stopMusic();
-
-        document.body.classList.remove("playing");
-        this.dom.crosshair.classList.remove("active");
-        this.dom.gameoverOverlay.classList.add("hidden");
-        this.dom.menuOverlay.classList.remove("hidden");
-        this._refreshRecordDisplays();
       }
 
       triggerCatGameOver(catCharacter) {
@@ -1545,18 +2168,15 @@
         this.sound.stopMusic();
         this.sound.playSfx("catHit");
 
-        document.body.classList.remove("playing");
+        document.body.classList.remove("game-playing");
         this.dom.crosshair.classList.remove("active");
 
-        // Dramatic red flash & heavy shake
         this._flashScreen("rgba(184, 41, 41, 0.55)", 260);
         this._shakeScreen(this.config.visuals.screenShakeIntensity * 2.2, 320);
 
-        // Save high scores
         const accuracy = this._calculateAccuracy();
         this._saveRecords(this.score, accuracy, this.highestCombo);
 
-        // Populate Game Over UI
         this.dom.culpritImg.src = catCharacter.image;
         this.dom.culpritImg.alt = catCharacter.name;
         this.dom.goScore.textContent = this.score;
@@ -1569,14 +2189,10 @@
         }, 260);
       }
 
-      /* ------------------------------------------------------------------------
-         CHAOTIC RANDOM SPAWNING ENGINE
-         ------------------------------------------------------------------------ */
       _scheduleNextSpawn(delayOverride = null) {
         if (!this.isRunning) return;
-
         const diff = this.currentDifficulty;
-        const randomDelay = delayOverride !== null
+        const delay = delayOverride !== null
           ? delayOverride
           : Math.floor(Math.random() * (diff.maxIntervalMs - diff.minIntervalMs + 1)) + diff.minIntervalMs;
 
@@ -1584,7 +2200,7 @@
           if (!this.isRunning) return;
           this._spawnWave();
           this._scheduleNextSpawn();
-        }, randomDelay);
+        }, delay);
       }
 
       _spawnWave() {
@@ -1592,26 +2208,20 @@
         const freeHoles = this.holes.filter((h) => !h.occupied);
         if (freeHoles.length === 0) return;
 
-        // Decide how many characters pop up at once (1 to maxSimultaneous)
         const currentlyActive = this.holes.length - freeHoles.length;
         const allowedNew = Math.max(0, diff.maxSimultaneous - currentlyActive);
         if (allowedNew === 0) return;
 
-        // Weighted towards 1 or 2, occasionally 3+ for chaotic bursts
         const roll = Math.random();
         let spawnCount = 1;
         if (roll > 0.72 && allowedNew >= 3) spawnCount = 3;
         else if (roll > 0.35 && allowedNew >= 2) spawnCount = 2;
 
         spawnCount = Math.min(spawnCount, freeHoles.length);
-
-        // Shuffle free holes so no two characters ever share a hole
-        const shuffledHoles = [...freeHoles].sort(() => Math.random() - 0.5);
+        const shuffled = [...freeHoles].sort(() => Math.random() - 0.5);
 
         for (let i = 0; i < spawnCount; i++) {
-          const hole = shuffledHoles[i];
-          const character = this._pickRandomCharacter();
-          this._emergeCharacter(hole, character);
+          this._emergeCharacter(shuffled[i], this._pickRandomCharacter());
         }
       }
 
@@ -1631,7 +2241,6 @@
         hole.character = character;
         hole.alreadyHit = false;
 
-        // Configure image & per-character scale/offset
         hole.imgEl.src = character.image;
         hole.imgEl.alt = character.name;
         hole.fallbackEl.textContent = character.name.toUpperCase();
@@ -1641,51 +2250,43 @@
         const oy = character.offsetY || 0;
         hole.imgEl.style.transform = `translate(${ox}px, ${oy}px) scale(${scale})`;
 
-        // Slight random variation in spring emergence speed
         const speedMult = this.config.visuals.animationSpeedMultiplier || 1;
-        const emergeDurationMs = Math.round((110 + Math.random() * 55) / speedMult);
+        const emergeMs = Math.round((110 + Math.random() * 55) / speedMult);
 
         hole.unitEl.classList.remove("shot-hit", "idle-bob", "active");
         hole.unitEl.style.transition = "none";
         hole.unitEl.style.transform = "translateY(108%)";
-
-        // Force reflow before spring emergence
         void hole.unitEl.offsetWidth;
 
         hole.unitEl.classList.add("active");
-        hole.unitEl.style.transition = `transform ${emergeDurationMs}ms cubic-bezier(0.22, 1.35, 0.44, 1)`;
+        hole.unitEl.style.transition = `transform ${emergeMs}ms cubic-bezier(0.22, 1.35, 0.44, 1)`;
         hole.unitEl.style.transform = "translateY(2%)";
 
-        // Play appearance audio cue
         if (character.appearSound) {
           this.sound.playSfx(character.appearSound);
         }
 
-        // Start subtle idle sway once risen
         setTimeout(() => {
           if (hole.occupied && !hole.alreadyHit && this.isRunning) {
             hole.unitEl.classList.add("idle-bob");
           }
-        }, emergeDurationMs);
+        }, emergeMs);
 
-        // Calculate visibility duration (occasionally introduce ultra-brief fake-out peeks)
         const diff = this.currentDifficulty;
         let stayDuration = diff.visibilityMs;
         if (Math.random() < diff.flashChance) {
           stayDuration = Math.max(95, Math.round(stayDuration * 0.62));
         } else {
-          // Slight +/- 12% organic variance
           stayDuration = Math.round(stayDuration * (0.88 + Math.random() * 0.24));
         }
 
         hole.retreatTimer = setTimeout(() => {
           this._retreatCharacter(hole, false);
-        }, emergeDurationMs + stayDuration);
+        }, emergeMs + stayDuration);
       }
 
       _retreatCharacter(hole, wasShot) {
         if (!hole.occupied) return;
-
         clearTimeout(hole.retreatTimer);
         hole.unitEl.classList.remove("idle-bob", "active");
 
@@ -1706,25 +2307,18 @@
         }, retreatMs + 15);
       }
 
-      /* ------------------------------------------------------------------------
-         SHOOTING, COLLISION & COMBO MECHANICS
-         ------------------------------------------------------------------------ */
       _handleShot(e) {
         const x = e.clientX;
         const y = e.clientY;
-
         this.shotsFired++;
         this.sound.playSfx("gunshot");
 
-        // Crosshair recoil & visual impact effects
         this.dom.crosshair.classList.add("recoil");
         setTimeout(() => this.dom.crosshair.classList.remove("recoil"), 90);
         this._spawnMuzzleAndImpact(x, y);
 
-        // Accurate hit detection directly against active character elements
         const hitUnit = e.target.closest(".character-unit.active");
         if (!hitUnit) {
-          // Missed shot: no score penalty, reset combo
           this.consecutiveHits = 0;
           this.currentMultiplier = 1;
           this.sound.playSfx("miss");
@@ -1733,25 +2327,18 @@
         }
 
         const slotEl = hitUnit.closest(".hole-slot");
-        const holeIndex = parseInt(slotEl.dataset.holeIndex, 10);
-        const hole = this.holes[holeIndex];
-
-        // Prevent double-scoring on the same appearance
-        if (!hole || !hole.occupied || hole.alreadyHit || !hole.character) {
-          return;
-        }
+        const hole = this.holes[parseInt(slotEl.dataset.holeIndex, 10)];
+        if (!hole || !hole.occupied || hole.alreadyHit || !hole.character) return;
 
         hole.alreadyHit = true;
         const char = hole.character;
 
-        // CHECK PROTECTED CAT RULE
         if (char.type === "cat") {
           hitUnit.classList.add("shot-hit");
           this.triggerCatGameOver(char);
           return;
         }
 
-        // VALID HUMAN TARGET HIT
         this.shotsHit++;
         this.consecutiveHits++;
         this.currentMultiplier = this._getMultiplierForHits(this.consecutiveHits);
@@ -1762,7 +2349,6 @@
         const pointsEarned = this.config.gameplay.basePoints * this.currentMultiplier;
         this.score += pointsEarned;
 
-        // Audio & tactile feedback
         this.sound.playSfx("hit");
         if (this.currentMultiplier >= 2 && this.consecutiveHits % 2 === 0) {
           this.sound.playSfx("combo");
@@ -1785,9 +2371,7 @@
       _getMultiplierForHits(hits) {
         let mult = 1;
         for (const tier of this.config.gameplay.comboTiers) {
-          if (hits >= tier.hits) {
-            mult = tier.multiplier;
-          }
+          if (hits >= tier.hits) mult = tier.multiplier;
         }
         return mult;
       }
@@ -1796,16 +2380,11 @@
         const levels = this.config.gameplay.difficultyLevels;
         let chosen = levels[0];
         for (const lvl of levels) {
-          if (this.score >= lvl.minScore) {
-            chosen = lvl;
-          }
+          if (this.score >= lvl.minScore) chosen = lvl;
         }
         this.currentDifficulty = chosen;
       }
 
-      /* ------------------------------------------------------------------------
-         VISUAL FX HELPERS
-         ------------------------------------------------------------------------ */
       _spawnMuzzleAndImpact(x, y) {
         const flash = document.createElement("div");
         flash.className = "muzzle-flash";
@@ -1837,7 +2416,7 @@
 
       _shakeScreen(intensity, durationMs) {
         const start = performance.now();
-        const animateShake = (now) => {
+        const step = (now) => {
           const elapsed = now - start;
           if (elapsed >= durationMs) {
             this.dom.wrapper.style.transform = "translate(0, 0)";
@@ -1847,9 +2426,9 @@
           const dx = (Math.random() * 2 - 1) * intensity * decay;
           const dy = (Math.random() * 2 - 1) * intensity * decay;
           this.dom.wrapper.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
-          requestAnimationFrame(animateShake);
+          requestAnimationFrame(step);
         };
-        requestAnimationFrame(animateShake);
+        requestAnimationFrame(step);
       }
 
       _flashScreen(color, durationMs) {
@@ -1860,9 +2439,6 @@
         }, durationMs);
       }
 
-      /* ------------------------------------------------------------------------
-         HUD & LOCALSTORAGE PERSISTENCE
-         ------------------------------------------------------------------------ */
       _calculateAccuracy() {
         if (this.shotsFired === 0) return 100;
         return Math.round((this.shotsHit / this.shotsFired) * 100);
@@ -1870,13 +2446,10 @@
 
       _updateHud() {
         const records = this._loadRecords();
-        const bestDisplay = Math.max(this.score, records.bestScore);
-
         this.dom.hudScore.textContent = this.score;
-        this.dom.hudBest.textContent = bestDisplay;
+        this.dom.hudBest.textContent = Math.max(this.score, records.bestScore);
         this.dom.hudAccuracy.textContent = `${this._calculateAccuracy()}%`;
         this.dom.diffPill.textContent = this.currentDifficulty.name;
-
         this.dom.comboBadge.textContent = `${this.currentMultiplier}x COMBO`;
         this.dom.comboBadge.classList.toggle("active", this.currentMultiplier > 1);
       }
@@ -1906,7 +2479,7 @@
           };
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
         } catch (err) {
-          // Ignore storage quota or private browsing errors gracefully
+          // Ignore storage restrictions
         }
       }
 
@@ -1941,9 +2514,8 @@
       }
     }
 
-    // Boot Game on DOM Ready
     window.addEventListener("DOMContentLoaded", () => {
-      window.gameInstance = new DontHurtTheCatsGame(GAME_CONFIG);
+      window.arcadePlatform = new ArcadePlatform(ARCADE_CONFIG);
     });
   </script>
 </body>
