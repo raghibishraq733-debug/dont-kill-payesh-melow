@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BURROW ARCADE — Don't Hurt The Cats & Cat-Tac-Toe</title>
+  <title>BURROW ARCADE — Don't Hurt The Cats, Cat-Tac-Toe & Burrow Dash</title>
   <style>
     /* ==========================================================================
        THEME VARIABLES (Overridden by ARCADE_CONFIG.visuals)
@@ -59,6 +59,10 @@
     }
     body.game-playing * {
       cursor: none !important;
+    }
+
+    body.racing-playing {
+      overflow: hidden;
     }
 
     #app-wrapper {
@@ -590,6 +594,7 @@
 
     .stat-value.accent { color: var(--accent); }
     .stat-value.urgent { color: #ef5350; }
+    .stat-value.boost { color: #5ce1e6; }
 
     #combo-badge {
       display: inline-flex;
@@ -955,6 +960,186 @@
       100% { transform: scale(1) rotate(0deg); opacity: 1; }
     }
 
+    /* ==========================================================================
+       BURROW DASH RACING STAGE VIEW (3 LANES: PAYESH OR MELOW)
+       ========================================================================== */
+    #race-stage-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: calc(100vh - 58px);
+      padding-bottom: 16px;
+    }
+
+    #race-stage-view.hidden {
+      display: none;
+    }
+
+    .race-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px 12px;
+      gap: 10px;
+      position: relative;
+    }
+
+    .race-canvas-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      aspect-ratio: 3 / 4.3;
+      max-height: 74vh;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid var(--olive-border);
+      background: #101913;
+      box-shadow: 0 22px 54px rgba(0, 0, 0, 0.65);
+      touch-action: none;
+    }
+
+    .race-canvas-wrap.boosting {
+      border-color: #5ce1e6;
+      box-shadow: 0 0 28px rgba(92, 225, 230, 0.35), 0 22px 54px rgba(0, 0, 0, 0.65);
+    }
+
+    #race-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .race-banner-toast {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(17, 21, 18, 0.85);
+      border: 1px solid var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--cream);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    .race-banner-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(2px);
+    }
+
+    .race-controls-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--cream-muted);
+    }
+
+    .race-touch-pad {
+      display: none;
+      width: 100%;
+      max-width: 500px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 760px) {
+      .race-touch-pad {
+        display: grid;
+      }
+    }
+
+    .race-steer-btn {
+      padding: 13px;
+      border-radius: 10px;
+      background: rgba(34, 50, 38, 0.85);
+      border: 1.5px solid var(--olive-border);
+      color: var(--cream);
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+
+    .race-steer-btn:active {
+      background: var(--accent);
+      color: var(--charcoal);
+      border-color: var(--accent);
+    }
+
+    /* Character Choice Cards (Payesh vs Melow) */
+    .racer-choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 18px 0 12px;
+    }
+
+    .racer-choice-btn {
+      background: rgba(17, 21, 18, 0.68);
+      border: 1.5px solid var(--olive-border);
+      border-radius: 12px;
+      padding: 16px 12px;
+      color: var(--cream);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+      transition: transform 0.14s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .racer-choice-btn:hover {
+      border-color: var(--accent);
+      background: rgba(217, 107, 39, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .racer-choice-avatar {
+      width: 68px;
+      height: 68px;
+      border-radius: 10px;
+      background: rgba(34, 50, 38, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .racer-choice-avatar img {
+      width: 90%;
+      height: 90%;
+      object-fit: contain;
+    }
+
+    .racer-choice-fallback {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .racer-choice-avatar.img-error img { display: none; }
+    .racer-choice-avatar.img-error .racer-choice-fallback { display: block; }
+
     .mode-choice-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1196,6 +1381,7 @@
 
     .rules-card strong { color: var(--cream); }
     .rules-card .warn { color: var(--accent); font-weight: 700; }
+    .rules-card .boost-txt { color: #5ce1e6; font-weight: 700; }
 
     .audio-settings-box {
       display: flex;
@@ -1362,7 +1548,7 @@
       }
       #holes-grid { gap: 22px 10px; }
       #crosshair { display: none !important; }
-      .mode-choice-grid { grid-template-columns: 1fr; }
+      .mode-choice-grid, .racer-choice-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1390,7 +1576,8 @@
       </button>
 
       <div class="top-actions">
-        <button type="button" class="pill-btn primary" id="btn-top-play">Play Now</button>
+        <button type="button" class="pill-btn primary" id="btn-top-race">Burrow Dash</button>
+        <button type="button" class="pill-btn" id="btn-top-play">Shooter</button>
         <button type="button" class="pill-btn" id="btn-top-games">Games Section</button>
         <button type="button" class="pill-btn" id="btn-toggle-music">Music: ON</button>
         <button type="button" class="pill-btn" id="btn-toggle-sfx">SFX: ON</button>
@@ -1402,13 +1589,14 @@
          ====================================================================== -->
     <main id="homepage-view">
       <section class="hero-minimal">
-        <span class="hero-tag">60s Arcade • Speed Ramps After 20s</span>
+        <span class="hero-tag">Arcade Hub • 3-Lane Racing, Shooter &amp; Cat-Tac-Toe</span>
         <h1 class="hero-title">DON'T HURT THE CATS.</h1>
         <p class="hero-subtitle">
-          Fast reflex shooting across six burrows. Hit Ragib, Tanha, and Neha for points—never shoot Payesh or Melow.
+          Race across three lanes as Payesh or Melow dodging Ragib, Tanha, Neha, burrow logs, and rocks while grabbing fish treats—or jump into the 60s shooter and Cat-Tac-Toe.
         </p>
         <div class="hero-actions">
-          <button type="button" class="btn-hero main" id="hero-start-btn">Start 60s Game</button>
+          <button type="button" class="btn-hero main" id="hero-start-race-btn">Play Burrow Dash</button>
+          <button type="button" class="btn-hero outline" id="hero-start-btn">Start 60s Shooter</button>
           <button type="button" class="btn-hero outline" id="hero-go-games-btn">Go to Games Section</button>
         </div>
       </section>
@@ -1426,7 +1614,7 @@
         <div class="cast-strip" id="cast-grid"></div>
 
         <div class="cast-status-bar">
-          <span id="cast-reaction-text">Ragib, Tanha, and Neha give points; Payesh and Melow end the run.</span>
+          <span id="cast-reaction-text">Payesh and Melow are your racers (and protected in Shooter); Ragib, Tanha, and Neha appear as targets or track obstacles.</span>
           <button type="button" class="pill-btn" id="btn-cast-chaos">Tap All 5</button>
         </div>
       </section>
@@ -1450,7 +1638,7 @@
             <h2 class="section-title">Games</h2>
             <p class="section-note">Playable games now, plus slots ready when you add more games in <code>ARCADE_CONFIG.games</code>.</p>
           </div>
-          <span class="pill-btn" id="games-count-badge">2 Live</span>
+          <span class="pill-btn" id="games-count-badge">3 Live</span>
         </div>
         <div class="games-grid" id="games-grid"></div>
       </section>
@@ -1558,6 +1746,59 @@
         </div>
       </div>
     </section>
+
+    <!-- ======================================================================
+         BURROW DASH RACING STAGE VIEW (3 LANES: PAYESH OR MELOW)
+         ====================================================================== -->
+    <section id="race-stage-view" class="hidden">
+      <div id="hud">
+        <div class="hud-group">
+          <div class="stat-box">
+            <span class="stat-label">Racer</span>
+            <span class="stat-value accent" id="race-hud-racer">PAYESH</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Score</span>
+            <span class="stat-value" id="race-hud-score">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Best</span>
+            <span class="stat-value" id="race-hud-best">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Fish</span>
+            <span class="stat-value boost" id="race-hud-fish">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Speed</span>
+            <span class="stat-value" id="race-hud-speed">1.0x</span>
+          </div>
+        </div>
+
+        <div class="hud-group">
+          <button type="button" class="pill-btn" id="btn-race-switch-cat">Change Cat</button>
+          <button type="button" class="pill-btn" id="btn-race-exit">Homepage</button>
+        </div>
+      </div>
+
+      <div class="race-shell">
+        <div class="race-canvas-wrap" id="race-canvas-wrap">
+          <div class="race-banner-toast" id="race-toast">FISH BOOST! +150</div>
+          <canvas id="race-canvas" width="540" height="774"></canvas>
+        </div>
+
+        <div class="race-touch-pad">
+          <button type="button" class="race-steer-btn" id="btn-steer-left">◀ LEFT (A / ←)</button>
+          <button type="button" class="race-steer-btn" id="btn-steer-right">RIGHT (D / →) ▶</button>
+        </div>
+
+        <div class="race-controls-hint">
+          <span><strong>Steer:</strong> ← / → or A / D • Swipe or Tap Left/Right</span>
+          <span>•</span>
+          <span><strong>Fish Treats:</strong> Speed Boost + Bonus Pts</span>
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- PRE-START MODAL (BURROW SHOOTER) -->
@@ -1585,6 +1826,69 @@
 
       <button type="button" class="btn-primary" id="btn-start-round">START ROUND</button>
       <button type="button" class="btn-secondary" id="btn-prestart-home">BACK TO HOMEPAGE</button>
+    </div>
+  </section>
+
+  <!-- BURROW DASH CHARACTER SELECTION MODAL (PAYESH vs MELOW) -->
+  <section id="race-select-overlay" class="overlay-screen hidden">
+    <div class="panel">
+      <h2 class="game-title">BURROW DASH</h2>
+      <p class="game-subtitle">Choose your cat to start the 3-lane run</p>
+
+      <div class="racer-choice-grid">
+        <button type="button" class="racer-choice-btn" id="btn-pick-payesh">
+          <div class="racer-choice-avatar" id="racer-avatar-payesh">
+            <img src="assets/characters/payesh.png" alt="Payesh" />
+            <span class="racer-choice-fallback">PAYESH</span>
+          </div>
+          <span class="status-pill">WHITE CAT</span>
+          <span class="mode-choice-title">Payesh</span>
+          <span class="mode-choice-sub">Nimble lane-hopper • Crisp boost handling.</span>
+        </button>
+
+        <button type="button" class="racer-choice-btn" id="btn-pick-melow">
+          <div class="racer-choice-avatar" id="racer-avatar-melow">
+            <img src="assets/characters/melow.png" alt="Melow" />
+            <span class="racer-choice-fallback">MELOW</span>
+          </div>
+          <span class="status-pill">ORANGE CAT</span>
+          <span class="mode-choice-title">Melow</span>
+          <span class="mode-choice-sub">Turbo chaser • Extra treat score surge.</span>
+        </button>
+      </div>
+
+      <div class="rules-card">
+        <div><strong>DODGE:</strong> Ragib, Tanha, Neha, Burrow Logs &amp; Rocks</div>
+        <div><span class="boost-txt">COLLECT FISH TREATS:</span> Speed boost + points + streak</div>
+        <div style="margin-top:4px;"><strong>CONTROLS:</strong> Left / Right Arrows, A / D, or Swipe / Tap on mobile.</div>
+      </div>
+
+      <button type="button" class="btn-secondary" id="btn-race-select-home">BACK TO HOMEPAGE</button>
+    </div>
+  </section>
+
+  <!-- BURROW DASH CRASH / END MODAL -->
+  <section id="race-gameover-overlay" class="overlay-screen hidden">
+    <div class="panel">
+      <div class="end-picture-card cat-death" id="race-end-card">
+        <img class="end-pic-bg-sprite" id="race-end-sprite" src="assets/characters/payesh.png" alt="Racer" />
+
+        <div class="end-pic-overlay-top">
+          <div class="end-pic-heading" id="race-end-heading">WIPEOUT!</div>
+          <div class="end-pic-sub" id="race-end-sub">Hit Ragib in the middle lane!</div>
+        </div>
+
+        <div class="end-pic-stats-written">
+          <div class="written-stat-line">SCORE: <span id="race-pic-score">0</span></div>
+          <div class="written-stat-line">BEST: <span id="race-pic-best">0</span></div>
+          <div class="written-stat-line">FISH: <span id="race-pic-fish">0</span></div>
+          <div class="written-stat-line">TOP SPEED: <span id="race-pic-speed">1.0x</span></div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="btn-race-retry">RACE AGAIN</button>
+      <button type="button" class="btn-secondary" id="btn-race-choose-again">SWITCH PAYESH / MELOW</button>
+      <button type="button" class="btn-secondary" id="btn-race-over-home">HOMEPAGE</button>
     </div>
   </section>
 
@@ -1663,7 +1967,8 @@
     /**
      * ============================================================================
      * CENTRALIZED ARCADE CONFIGURATION
-     * Customize characters, games list, Cat-Tac-Toe photocards, audio, and visuals.
+     * Customize characters, games list, Cat-Tac-Toe photocards, Burrow Dash,
+     * audio, and visuals.
      * ============================================================================
      */
     const ARCADE_CONFIG = {
@@ -1671,14 +1976,55 @@
 
       // Cat-Tac-Toe image & photocard paths
       ttt: {
-        payeshImage: "assets/characters/payesh.png", // Replaces X
-        melowImage: "assets/characters/melow.png",   // Replaces O
-        winPhotocard: "assets/photocards/ttt-win.png",   // Shown when either Payesh or Melow wins
-        drawPhotocard: "assets/photocards/ttt-draw.png"  // Shown when the match ends in a draw
+        payeshImage: "assets/characters/payesh.png",
+        melowImage: "assets/characters/melow.png",
+        winPhotocard: "assets/photocards/ttt-win.png",
+        drawPhotocard: "assets/photocards/ttt-draw.png"
       },
 
-      // Add new games here as you create them!
+      // Burrow Dash 3-lane racing config
+      racing: {
+        racers: {
+          payesh: {
+            id: "payesh",
+            name: "Payesh",
+            tag: "WHITE CAT",
+            image: "assets/characters/payesh.png",
+            color: "#f2ece1",
+            accent: "#8be9fd",
+            boostMultiplier: 1.38,
+            boostDurationMs: 2400,
+            treatBonusPts: 150
+          },
+          melow: {
+            id: "melow",
+            name: "Melow",
+            tag: "ORANGE CAT",
+            image: "assets/characters/melow.png",
+            color: "#f59e42",
+            accent: "#ff7b29",
+            boostMultiplier: 1.46,
+            boostDurationMs: 2500,
+            treatBonusPts: 200
+          }
+        },
+        baseSpeedPxPerSec: 360,
+        maxSpeedPxPerSec: 980,
+        speedRampPerSec: 11.5,
+        spawnIntervalStartMs: 740,
+        spawnIntervalMinMs: 290
+      },
+
+      // Playable games & open slots
       games: [
+        {
+          id: "burrow-dash",
+          title: "BURROW DASH",
+          tag: "NEW RACING",
+          status: "playable",
+          description: "Pick Payesh or Melow at start, weave across 3 lanes dodging Ragib, Tanha, Neha, burrow logs & rocks, and grab fish treats as track speed ramps up.",
+          meta: "3 LANES • FISH BOOSTS • SPEED RAMP"
+        },
         {
           id: "dont-hurt-the-cats",
           title: "DON'T HURT THE CATS.",
@@ -1690,14 +2036,14 @@
         {
           id: "cat-tac-toe",
           title: "CAT-TAC-TOE",
-          tag: "NEW",
+          tag: "2P / AI",
           status: "playable",
           description: "Classic 3x3 grid starring Payesh and Melow instead of X and O. Play against Meaw or challenge another player locally.",
           meta: "VS MEAW OR 2P • PHOTOCARD REWARDS"
         },
         {
-          id: "slot-game-3",
-          title: "FUTURE GAME #3",
+          id: "slot-game-4",
+          title: "FUTURE GAME #4",
           tag: "OPEN SLOT",
           status: "coming-soon",
           description: "Reserved arcade slot for another mini-game or high-score mode.",
@@ -1716,7 +2062,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Ragib: Fast hands only—speed climbs after 20 seconds!"
+          pokeLine: "Ragib: Watch the lanes in Burrow Dash—don't clip Ragib at high speed!"
         },
         {
           id: "tanha",
@@ -1728,7 +2074,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Tanha: Keep your streak alive and don't blink late in the round."
+          pokeLine: "Tanha: Chain fish treats for big streak multipliers before the track speeds up."
         },
         {
           id: "neha",
@@ -1740,7 +2086,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Neha: Clean shots build combos—empty clicks reset your streak."
+          pokeLine: "Neha: Sharp lane switches beat last-second panic when logs and rocks pack up."
         },
         {
           id: "payesh",
@@ -1752,7 +2098,7 @@
           offsetY: 0,
           frequency: 0.9,
           appearSound: "catWarning",
-          pokeLine: "Payesh (White Cat): Protected! Touching Payesh ends the game instantly."
+          pokeLine: "Payesh (White Cat): Ready to sprint across 3 lanes—and protected in Shooter!"
         },
         {
           id: "melow",
@@ -1764,7 +2110,7 @@
           offsetY: 0,
           frequency: 0.9,
           appearSound: "catWarning",
-          pokeLine: "Melow (Orange Cat): Protected! Hold your fire when Melow pops up."
+          pokeLine: "Melow (Orange Cat): Turbo fish-treat chaser in Burrow Dash—never shoot Melow!"
         }
       ],
 
@@ -2002,6 +2348,17 @@
           osc.connect(gain).connect(this.ctx.destination);
           osc.start(now);
           osc.stop(now + 0.11);
+        } else if (name === "boost") {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(1240, now + 0.18);
+          gain.gain.setValueAtTime(v * 0.42, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.connect(gain).connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.21);
         } else if (name === "miss") {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
@@ -2051,6 +2408,765 @@
 
     /**
      * ============================================================================
+     * BURROW DASH 3-LANE RACING CONTROLLER (PAYESH OR MELOW)
+     * ============================================================================
+     */
+    class BurrowDashController {
+      constructor(config, sound, arcade, onExitHome) {
+        this.config = config;
+        this.raceCfg = config.racing;
+        this.sound = sound;
+        this.arcade = arcade;
+        this.onExitHome = onExitHome;
+
+        this.selectedRacerKey = "payesh";
+        this.isRunning = false;
+        this.rafId = null;
+        this.lastFrameTime = 0;
+
+        this.lane = 1; // 0 = left, 1 = center, 2 = right
+        this.playerX = 0;
+        this.playerTilt = 0;
+        this.score = 0;
+        this.fishCount = 0;
+        this.streak = 0;
+        this.runSeconds = 0;
+        this.currentSpeed = this.raceCfg.baseSpeedPxPerSec;
+        this.topSpeedRatio = 1.0;
+        this.boostRemainingMs = 0;
+        this.scrollOffset = 0;
+        this.spawnTimerMs = 0;
+        this.lastSpawnLane = -1;
+
+        this.entities = []; // { id, kind, label, lane, y, vyMult, collected, nearMissed, radius }
+        this.particles = []; // { x, y, vx, vy, life, maxLife, color, size }
+        this.popups = []; // { x, y, text, color, life }
+        this.spriteCache = {};
+
+        this.STORAGE_KEY = "burrow_dash_best_v1";
+        this.touchStartX = null;
+        this.touchStartY = null;
+        this.toastTimer = null;
+
+        this.dom = {
+          stageView: document.getElementById("race-stage-view"),
+          selectOverlay: document.getElementById("race-select-overlay"),
+          gameOverOverlay: document.getElementById("race-gameover-overlay"),
+          canvasWrap: document.getElementById("race-canvas-wrap"),
+          canvas: document.getElementById("race-canvas"),
+          toast: document.getElementById("race-toast"),
+          hudRacer: document.getElementById("race-hud-racer"),
+          hudScore: document.getElementById("race-hud-score"),
+          hudBest: document.getElementById("race-hud-best"),
+          hudFish: document.getElementById("race-hud-fish"),
+          hudSpeed: document.getElementById("race-hud-speed"),
+          endHeading: document.getElementById("race-end-heading"),
+          endSub: document.getElementById("race-end-sub"),
+          endSprite: document.getElementById("race-end-sprite"),
+          picScore: document.getElementById("race-pic-score"),
+          picBest: document.getElementById("race-pic-best"),
+          picFish: document.getElementById("race-pic-fish"),
+          picSpeed: document.getElementById("race-pic-speed")
+        };
+
+        this.ctx = this.dom.canvas.getContext("2d");
+        this._preloadSprites();
+        this._setupSelectFallbacks();
+        this._bindEvents();
+      }
+
+      _preloadSprites() {
+        const sources = [
+          { key: "payesh", src: this.raceCfg.racers.payesh.image },
+          { key: "melow", src: this.raceCfg.racers.melow.image },
+          { key: "ragib", src: "assets/characters/ragib.png" },
+          { key: "tanha", src: "assets/characters/tanha.png" },
+          { key: "neha", src: "assets/characters/neha.png" }
+        ];
+
+        sources.forEach(({ key, src }) => {
+          const img = new Image();
+          img.src = src;
+          img.addEventListener("load", () => {
+            this.spriteCache[key] = img;
+          });
+        });
+      }
+
+      _setupSelectFallbacks() {
+        ["racer-avatar-payesh", "racer-avatar-melow"].forEach((id) => {
+          const box = document.getElementById(id);
+          const img = box.querySelector("img");
+          img.addEventListener("error", () => box.classList.add("img-error"));
+          img.addEventListener("load", () => box.classList.remove("img-error"));
+        });
+      }
+
+      _bindEvents() {
+        document.getElementById("btn-pick-payesh").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.startRace("payesh");
+        });
+
+        document.getElementById("btn-pick-melow").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.startRace("melow");
+        });
+
+        document.getElementById("btn-race-select-home").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.onExitHome();
+        });
+
+        document.getElementById("btn-race-switch-cat").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.openCharacterSelector();
+        });
+
+        document.getElementById("btn-race-exit").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.onExitHome();
+        });
+
+        document.getElementById("btn-race-retry").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.startRace(this.selectedRacerKey);
+        });
+
+        document.getElementById("btn-race-choose-again").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.openCharacterSelector();
+        });
+
+        document.getElementById("btn-race-over-home").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.onExitHome();
+        });
+
+        document.getElementById("btn-steer-left").addEventListener("click", () => {
+          this.shiftLane(-1);
+        });
+
+        document.getElementById("btn-steer-right").addEventListener("click", () => {
+          this.shiftLane(1);
+        });
+
+        window.addEventListener("keydown", (e) => {
+          if (!this.isRunning) return;
+          if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+            e.preventDefault();
+            this.shiftLane(-1);
+          } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+            e.preventDefault();
+            this.shiftLane(1);
+          }
+        });
+
+        // Swipe + Tap on canvas wrap
+        this.dom.canvasWrap.addEventListener("pointerdown", (e) => {
+          if (!this.isRunning) return;
+          this.touchStartX = e.clientX;
+          this.touchStartY = e.clientY;
+        });
+
+        this.dom.canvasWrap.addEventListener("pointerup", (e) => {
+          if (!this.isRunning || this.touchStartX === null) return;
+          const dx = e.clientX - this.touchStartX;
+          const dy = e.clientY - this.touchStartY;
+          this.touchStartX = null;
+          this.touchStartY = null;
+
+          if (Math.abs(dx) > 26 && Math.abs(dx) > Math.abs(dy) * 0.75) {
+            this.shiftLane(dx < 0 ? -1 : 1);
+          } else {
+            const rect = this.dom.canvasWrap.getBoundingClientRect();
+            const relX = (e.clientX - rect.left) / rect.width;
+            if (relX < 0.36) this.shiftLane(-1);
+            else if (relX > 0.64) this.shiftLane(1);
+            else {
+              // Tap center: step toward nearest open lane
+              if (this.lane === 1) this.shiftLane(Math.random() < 0.5 ? -1 : 1);
+              else this.setLane(1);
+            }
+          }
+        });
+      }
+
+      openCharacterSelector() {
+        this._stopLoop();
+        this.isRunning = false;
+        document.body.classList.remove("racing-playing");
+        this.dom.gameOverOverlay.classList.add("hidden");
+        this.dom.stageView.classList.remove("hidden");
+        this.dom.selectOverlay.classList.remove("hidden");
+      }
+
+      hideAll() {
+        this._stopLoop();
+        this.isRunning = false;
+        document.body.classList.remove("racing-playing");
+        this.dom.selectOverlay.classList.add("hidden");
+        this.dom.gameOverOverlay.classList.add("hidden");
+        this.dom.stageView.classList.add("hidden");
+      }
+
+      startRace(racerKey) {
+        this._stopLoop();
+        this.selectedRacerKey = this.raceCfg.racers[racerKey] ? racerKey : "payesh";
+        const racer = this.raceCfg.racers[this.selectedRacerKey];
+
+        this.dom.selectOverlay.classList.add("hidden");
+        this.dom.gameOverOverlay.classList.add("hidden");
+        this.dom.stageView.classList.remove("hidden");
+        document.body.classList.add("racing-playing");
+
+        this.isRunning = true;
+        this.lane = 1;
+        this.playerX = this._getLaneCenterX(1);
+        this.playerTilt = 0;
+        this.score = 0;
+        this.fishCount = 0;
+        this.streak = 0;
+        this.runSeconds = 0;
+        this.currentSpeed = this.raceCfg.baseSpeedPxPerSec;
+        this.topSpeedRatio = 1.0;
+        this.boostRemainingMs = 0;
+        this.scrollOffset = 0;
+        this.spawnTimerMs = 240;
+        this.lastSpawnLane = 1;
+        this.entities = [];
+        this.particles = [];
+        this.popups = [];
+
+        this.dom.hudRacer.textContent = racer.name.toUpperCase();
+        this._updateHud();
+        this._showToast(`${racer.name.toUpperCase()} ON THE TRACK — DODGE & GRAB FISH!`);
+        this.sound.startMusic();
+
+        this.lastFrameTime = performance.now();
+        this._loop(this.lastFrameTime);
+      }
+
+      shiftLane(delta) {
+        if (!this.isRunning) return;
+        const next = Math.max(0, Math.min(2, this.lane + delta));
+        if (next !== this.lane) {
+          this.lane = next;
+          this.playerTilt = delta * 0.24;
+          this.sound.playSfx("button");
+        }
+      }
+
+      setLane(targetLane) {
+        if (!this.isRunning || targetLane === this.lane) return;
+        const delta = targetLane > this.lane ? 1 : -1;
+        this.lane = targetLane;
+        this.playerTilt = delta * 0.24;
+        this.sound.playSfx("button");
+      }
+
+      _getTrackBounds() {
+        const w = this.dom.canvas.width;
+        const trackWidth = w * 0.74;
+        const left = (w - trackWidth) / 2;
+        const laneWidth = trackWidth / 3;
+        return { w, h: this.dom.canvas.height, left, trackWidth, laneWidth };
+      }
+
+      _getLaneCenterX(laneIndex) {
+        const { left, laneWidth } = this._getTrackBounds();
+        return left + laneWidth * (laneIndex + 0.5);
+      }
+
+      _stopLoop() {
+        if (this.rafId) {
+          cancelAnimationFrame(this.rafId);
+          this.rafId = null;
+        }
+      }
+
+      _loop(now) {
+        if (!this.isRunning) return;
+        const dtMs = Math.min(48, Math.max(1, now - this.lastFrameTime));
+        this.lastFrameTime = now;
+        const dt = dtMs / 1000;
+
+        this._update(dt, dtMs);
+        this._render();
+
+        this.rafId = requestAnimationFrame((t) => this._loop(t));
+      }
+
+      _update(dt, dtMs) {
+        this.runSeconds += dt;
+
+        // Smooth speed ramp up as run continues
+        const baseRamped = Math.min(
+          this.raceCfg.maxSpeedPxPerSec,
+          this.raceCfg.baseSpeedPxPerSec + this.runSeconds * this.raceCfg.speedRampPerSec
+        );
+
+        const racer = this.raceCfg.racers[this.selectedRacerKey];
+        if (this.boostRemainingMs > 0) {
+          this.boostRemainingMs = Math.max(0, this.boostRemainingMs - dtMs);
+          this.currentSpeed = Math.min(this.raceCfg.maxSpeedPxPerSec * 1.25, baseRamped * racer.boostMultiplier);
+          this.dom.canvasWrap.classList.add("boosting");
+        } else {
+          this.currentSpeed = baseRamped;
+          this.dom.canvasWrap.classList.remove("boosting");
+        }
+
+        const speedRatio = Number((this.currentSpeed / this.raceCfg.baseSpeedPxPerSec).toFixed(1));
+        if (speedRatio > this.topSpeedRatio) {
+          this.topSpeedRatio = speedRatio;
+        }
+
+        this.scrollOffset = (this.scrollOffset + this.currentSpeed * dt) % 120;
+
+        // Smooth lateral interpolation toward target lane
+        const targetX = this._getLaneCenterX(this.lane);
+        this.playerX += (targetX - this.playerX) * Math.min(1, dt * 19);
+        this.playerTilt += (0 - this.playerTilt) * Math.min(1, dt * 11);
+
+        // Passive distance score + boost bonus
+        const ptsGain = this.currentSpeed * dt * 0.24 * (1 + Math.min(1.5, this.streak * 0.1));
+        this.score += ptsGain;
+
+        // Spawn logic
+        this.spawnTimerMs -= dtMs;
+        if (this.spawnTimerMs <= 0) {
+          this._spawnWave();
+          const rampFactor = Math.min(1, this.runSeconds / 55);
+          const interval =
+            this.raceCfg.spawnIntervalStartMs -
+            (this.raceCfg.spawnIntervalStartMs - this.raceCfg.spawnIntervalMinMs) * rampFactor;
+          this.spawnTimerMs = Math.max(this.raceCfg.spawnIntervalMinMs, interval * (0.82 + Math.random() * 0.36));
+        }
+
+        const playerY = this.dom.canvas.height - 122;
+        const playerHitR = 26;
+
+        // Update entities & check collisions / fish pickups / near-misses
+        for (let i = this.entities.length - 1; i >= 0; i--) {
+          const ent = this.entities[i];
+          ent.y += this.currentSpeed * (ent.vyMult || 1) * dt;
+          const entX = this._getLaneCenterX(ent.lane);
+
+          if (!ent.collected) {
+            const dx = Math.abs(this.playerX - entX);
+            const dy = Math.abs(playerY - ent.y);
+
+            if (ent.kind === "fish") {
+              if (dx < playerHitR + ent.radius && dy < playerHitR + ent.radius + 8) {
+                ent.collected = true;
+                this._collectFish(entX, ent.y);
+                this.entities.splice(i, 1);
+                continue;
+              }
+            } else {
+              // Obstacle collision
+              if (dx < playerHitR + ent.radius * 0.78 && dy < playerHitR + ent.radius * 0.78) {
+                this._crashOnObstacle(ent);
+                return;
+              }
+
+              // Close lane pass bonus
+              if (!ent.nearMissed && ent.y > playerY + ent.radius && Math.abs(ent.lane - this.lane) === 1 && dx < this._getTrackBounds().laneWidth * 1.15) {
+                ent.nearMissed = true;
+                this.streak++;
+                this.score += 35;
+                this._spawnPopup(this.playerX, playerY - 46, "CLOSE DODGE +35", "#ffd166");
+              }
+            }
+          }
+
+          if (ent.y > this.dom.canvas.height + 90) {
+            this.entities.splice(i, 1);
+          }
+        }
+
+        // Particles & popups
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.life -= dtMs;
+          if (p.life <= 0) this.particles.splice(i, 1);
+        }
+
+        for (let i = this.popups.length - 1; i >= 0; i--) {
+          const pop = this.popups[i];
+          pop.y -= 48 * dt;
+          pop.life -= dtMs;
+          if (pop.life <= 0) this.popups.splice(i, 1);
+        }
+
+        this._updateHud();
+      }
+
+      _spawnWave() {
+        // Always keep at least 1 safe lane when spawning multiple things
+        const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
+        const primaryLane = lanes[0] === this.lastSpawnLane && Math.random() < 0.65 ? lanes[1] : lanes[0];
+        this.lastSpawnLane = primaryLane;
+
+        const obstaclePool = [
+          { kind: "ragib", label: "RAGIB", radius: 28, vyMult: 1.02 },
+          { kind: "tanha", label: "TANHA", radius: 28, vyMult: 1.0 },
+          { kind: "neha", label: "NEHA", radius: 28, vyMult: 1.04 },
+          { kind: "log", label: "LOG", radius: 30, vyMult: 1.0 },
+          { kind: "rock", label: "ROCK", radius: 27, vyMult: 1.0 }
+        ];
+
+        const obs = obstaclePool[Math.floor(Math.random() * obstaclePool.length)];
+        this.entities.push({
+          id: Math.random().toString(36).slice(2),
+          ...obs,
+          lane: primaryLane,
+          y: -55,
+          collected: false,
+          nearMissed: false
+        });
+
+        // Spawn a fish treat in a different lane ~55% of the time
+        if (Math.random() < 0.55) {
+          const fishLane = lanes.find((l) => l !== primaryLane);
+          this.entities.push({
+            id: Math.random().toString(36).slice(2),
+            kind: "fish",
+            label: "FISH",
+            lane: fishLane,
+            y: -115,
+            vyMult: 1.0,
+            radius: 22,
+            collected: false,
+            nearMissed: false
+          });
+        }
+
+        // At higher speeds, occasionally place a second obstacle in the remaining non-fish lane
+        if (this.runSeconds > 14 && Math.random() < 0.36) {
+          const thirdLane = lanes.find((l) => l !== primaryLane);
+          const hasFishThere = this.entities.some((e) => e.kind === "fish" && e.lane === thirdLane && e.y < 120);
+          if (!hasFishThere) {
+            const obs2 = obstaclePool[Math.floor(Math.random() * obstaclePool.length)];
+            this.entities.push({
+              id: Math.random().toString(36).slice(2),
+              ...obs2,
+              lane: thirdLane,
+              y: -165,
+              collected: false,
+              nearMissed: false
+            });
+          }
+        }
+      }
+
+      _collectFish(x, y) {
+        const racer = this.raceCfg.racers[this.selectedRacerKey];
+        this.fishCount++;
+        this.streak++;
+        const pts = racer.treatBonusPts + (this.streak - 1) * 25;
+        this.score += pts;
+        this.boostRemainingMs = racer.boostDurationMs;
+
+        this.sound.playSfx("boost");
+        this.arcade._flashScreen("rgba(92, 225, 230, 0.16)", 110);
+        this._showToast(`FISH BOOST! +${pts} PTS`);
+        this._spawnPopup(x, y - 16, `+${pts} FISH!`, "#5ce1e6");
+
+        for (let k = 0; k < 14; k++) {
+          const angle = (Math.PI * 2 * k) / 14;
+          const spd = 70 + Math.random() * 140;
+          this.particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * spd,
+            vy: Math.sin(angle) * spd,
+            life: 420,
+            maxLife: 420,
+            color: k % 2 === 0 ? "#5ce1e6" : "#ffd166",
+            size: 4 + Math.random() * 3
+          });
+        }
+      }
+
+      _crashOnObstacle(obstacle) {
+        this.isRunning = false;
+        this._stopLoop();
+        this.sound.stopMusic();
+        this.sound.playSfx("catHit");
+        document.body.classList.remove("racing-playing");
+
+        this.arcade._flashScreen("rgba(184, 41, 41, 0.55)", 260);
+        this.arcade._shakeScreen(this.config.visuals.screenShakeIntensity * 2.2, 300);
+
+        const finalScore = Math.floor(this.score);
+        const best = this._saveBest(finalScore);
+        const racer = this.raceCfg.racers[this.selectedRacerKey];
+
+        this.dom.endHeading.textContent = `${racer.name.toUpperCase()} WIPED OUT!`;
+        this.dom.endSub.textContent = `Hit ${obstacle.label} in Lane ${obstacle.lane + 1} at ${this.topSpeedRatio.toFixed(1)}x speed.`;
+        this.dom.endSprite.src = racer.image;
+        this.dom.endSprite.alt = racer.name;
+
+        this.dom.picScore.textContent = finalScore;
+        this.dom.picBest.textContent = best;
+        this.dom.picFish.textContent = this.fishCount;
+        this.dom.picSpeed.textContent = `${this.topSpeedRatio.toFixed(1)}x`;
+
+        setTimeout(() => {
+          this.dom.gameOverOverlay.classList.remove("hidden");
+        }, 220);
+      }
+
+      _spawnPopup(x, y, text, color) {
+        this.popups.push({ x, y, text, color, life: 680 });
+      }
+
+      _showToast(msg) {
+        this.dom.toast.textContent = msg;
+        this.dom.toast.classList.add("show");
+        clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => {
+          this.dom.toast.classList.remove("show");
+        }, 1250);
+      }
+
+      _loadBest() {
+        try {
+          return Number(localStorage.getItem(this.STORAGE_KEY)) || 0;
+        } catch {
+          return 0;
+        }
+      }
+
+      _saveBest(score) {
+        const prev = this._loadBest();
+        const next = Math.max(prev, score);
+        try {
+          localStorage.setItem(this.STORAGE_KEY, String(next));
+        } catch {}
+        return next;
+      }
+
+      _updateHud() {
+        const s = Math.floor(this.score);
+        const best = Math.max(s, this._loadBest());
+        const speedRatio = (this.currentSpeed / this.raceCfg.baseSpeedPxPerSec).toFixed(1);
+        this.dom.hudScore.textContent = s;
+        this.dom.hudBest.textContent = best;
+        this.dom.hudFish.textContent = this.fishCount;
+        this.dom.hudSpeed.textContent = this.boostRemainingMs > 0 ? `${speedRatio}x ⚡` : `${speedRatio}x`;
+      }
+
+      _render() {
+        const ctx = this.ctx;
+        const { w, h, left, trackWidth, laneWidth } = this._getTrackBounds();
+
+        // Outer burrow turf
+        ctx.fillStyle = "#121d16";
+        ctx.fillRect(0, 0, w, h);
+
+        // Side grass/moss stripes
+        ctx.fillStyle = "#1a2b20";
+        ctx.fillRect(left - 14, 0, 14, h);
+        ctx.fillRect(left + trackWidth, 0, 14, h);
+
+        // Main dirt/stone track
+        const grad = ctx.createLinearGradient(left, 0, left + trackWidth, 0);
+        grad.addColorStop(0, "#241b14");
+        grad.addColorStop(0.5, "#2f231a");
+        grad.addColorStop(1, "#241b14");
+        ctx.fillStyle = grad;
+        ctx.fillRect(left, 0, trackWidth, h);
+
+        // Boost aura on track
+        if (this.boostRemainingMs > 0) {
+          ctx.fillStyle = "rgba(92, 225, 230, 0.08)";
+          ctx.fillRect(left, 0, trackWidth, h);
+        }
+
+        // Animated scrolling track markers
+        ctx.strokeStyle = "rgba(242, 236, 225, 0.22)";
+        ctx.lineWidth = 3;
+        ctx.setLineDash([28, 32]);
+        ctx.lineDashOffset = -this.scrollOffset;
+
+        for (let laneLine = 1; laneLine < 3; laneLine++) {
+          const x = left + laneWidth * laneLine;
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Draw entities
+        for (const ent of this.entities) {
+          const ex = this._getLaneCenterX(ent.lane);
+          this._drawEntity(ctx, ent, ex, ent.y);
+        }
+
+        // Draw player racer (Payesh or Melow)
+        const playerY = h - 122;
+        this._drawRacer(ctx, this.playerX, playerY, this.playerTilt);
+
+        // Draw particles
+        for (const p of this.particles) {
+          ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // Draw floating score popups
+        ctx.font = "800 15px " + getComputedStyle(document.documentElement).getPropertyValue("--font-mono");
+        ctx.textAlign = "center";
+        for (const pop of this.popups) {
+          ctx.globalAlpha = Math.min(1, pop.life / 300);
+          ctx.fillStyle = "#111512";
+          ctx.fillText(pop.text, pop.x + 1, pop.y + 1);
+          ctx.fillStyle = pop.color;
+          ctx.fillText(pop.text, pop.x, pop.y);
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      _drawRacer(ctx, x, y, tilt) {
+        const racer = this.raceCfg.racers[this.selectedRacerKey];
+        const sprite = this.spriteCache[this.selectedRacerKey];
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(tilt);
+
+        // Ground shadow
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.beginPath();
+        ctx.ellipse(0, 30, 26, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (this.boostRemainingMs > 0) {
+          ctx.strokeStyle = "#5ce1e6";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, 36, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        if (sprite && sprite.complete && sprite.naturalWidth > 0) {
+          ctx.drawImage(sprite, -34, -38, 68, 68);
+        } else {
+          ctx.fillStyle = racer.color;
+          ctx.beginPath();
+          ctx.arc(0, -2, 26, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = racer.accent;
+          ctx.stroke();
+
+          ctx.fillStyle = "#111512";
+          ctx.font = "900 11px " + getComputedStyle(document.documentElement).getPropertyValue("--font-mono");
+          ctx.textAlign = "center";
+          ctx.fillText(racer.name.toUpperCase(), 0, 3);
+        }
+
+        ctx.restore();
+      }
+
+      _drawEntity(ctx, ent, x, y) {
+        ctx.save();
+        ctx.translate(x, y);
+
+        if (ent.kind === "fish") {
+          // Glowing fish treat
+          ctx.fillStyle = "rgba(92, 225, 230, 0.22)";
+          ctx.beginPath();
+          ctx.arc(0, 0, 25, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#5ce1e6";
+          ctx.beginPath();
+          ctx.ellipse(-2, 0, 15, 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Tail fin
+          ctx.beginPath();
+          ctx.moveTo(11, 0);
+          ctx.lineTo(21, -8);
+          ctx.lineTo(21, 8);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = "#111512";
+          ctx.beginPath();
+          ctx.arc(-9, -2, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (ent.kind === "log") {
+          // Burrow log
+          ctx.fillStyle = "#5c3a21";
+          ctx.beginPath();
+          ctx.roundRect(-34, -14, 68, 28, 10);
+          ctx.fill();
+          ctx.strokeStyle = "#8c5a34";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.fillStyle = "#d9b38c";
+          ctx.beginPath();
+          ctx.ellipse(26, 0, 6, 11, 0, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (ent.kind === "rock") {
+          // Burrow rock
+          ctx.fillStyle = "#565e59";
+          ctx.beginPath();
+          ctx.moveTo(-24, 14);
+          ctx.lineTo(-28, -6);
+          ctx.lineTo(-8, -22);
+          ctx.lineTo(18, -18);
+          ctx.lineTo(27, 4);
+          ctx.lineTo(14, 18);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = "#88948d";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else {
+          // Ragib, Tanha, Neha obstacle
+          const sprite = this.spriteCache[ent.kind];
+          if (sprite && sprite.complete && sprite.naturalWidth > 0) {
+            ctx.drawImage(sprite, -30, -34, 60, 60);
+          } else {
+            const colors = { ragib: "#e05a47", tanha: "#d96b27", neha: "#c94a7c" };
+            ctx.fillStyle = colors[ent.kind] || "#d96b27";
+            ctx.beginPath();
+            ctx.arc(0, 0, 25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#f2ece1";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+
+          // Name tag pill below obstacle
+          ctx.fillStyle = "rgba(17, 21, 18, 0.88)";
+          ctx.beginPath();
+          ctx.roundRect(-28, 22, 56, 16, 5);
+          ctx.fill();
+          ctx.fillStyle = "#f2ece1";
+          ctx.font = "800 9px " + getComputedStyle(document.documentElement).getPropertyValue("--font-mono");
+          ctx.textAlign = "center";
+          ctx.fillText(ent.label, 0, 33);
+        }
+
+        ctx.restore();
+      }
+    }
+
+    /**
+     * ============================================================================
      * CAT-TAC-TOE CONTROLLER (Payesh = X, Melow = O, Meaw AI / 2P, Photocards)
      * ============================================================================
      */
@@ -2060,8 +3176,8 @@
         this.sound = sound;
         this.onExitHome = onExitHome;
 
-        this.mode = "meaw"; // "meaw" (AI) or "pvp" (2 players)
-        this.board = Array(9).fill(null); // null | "payesh" | "melow"
+        this.mode = "meaw";
+        this.board = Array(9).fill(null);
         this.currentTurn = "payesh";
         this.isGameOver = false;
         this.aiTimer = null;
@@ -2283,21 +3399,18 @@
           .filter((idx) => idx !== -1);
         if (empty.length === 0) return -1;
 
-        // 1. Take winning move if available
         for (const idx of empty) {
           const copy = [...this.board];
           copy[idx] = "melow";
           if (this._checkWinner(copy, "melow")) return idx;
         }
 
-        // 2. Block Payesh's winning move
         for (const idx of empty) {
           const copy = [...this.board];
           copy[idx] = "payesh";
           if (this._checkWinner(copy, "payesh")) return idx;
         }
 
-        // 3. Prefer center, then corners, then edges
         if (this.board[4] === null) return 4;
         const corners = [0, 2, 6, 8].filter((i) => this.board[i] === null);
         if (corners.length > 0) {
@@ -2391,6 +3504,7 @@
         this.config = config;
         this.sound = new SoundEngine(config.audio);
         this.ttt = new CatTacToeController(config, this.sound, () => this.goHome());
+        this.race = new BurrowDashController(config, this.sound, this, () => this.goHome());
 
         this.isRunning = false;
         this.score = 0;
@@ -2470,9 +3584,6 @@
         root.setProperty("--anim-speed", v.animationSpeedMultiplier);
       }
 
-      /* ------------------------------------------------------------------------
-         HOMEPAGE: ALL 5 CHARACTERS + FAST WARMUP + GAMES SECTION
-         ------------------------------------------------------------------------ */
       _renderCastBoard() {
         this.dom.castGrid.innerHTML = "";
         this.config.characters.forEach((char) => {
@@ -2487,7 +3598,7 @@
               <span class="cast-fallback">${char.name.toUpperCase()}</span>
             </div>
             <div class="cast-name">${char.name}</div>
-            <span class="cast-tag">${char.type === "cat" ? "CAT • SAFE" : "TARGET • +10"}</span>
+            <span class="cast-tag">${char.type === "cat" ? "RACER / SAFE" : "TARGET / OBS"}</span>
             <span class="cast-hits" id="poke-count-${char.id}">0 taps</span>
           `;
 
@@ -2556,7 +3667,9 @@
 
           card.querySelector("button").addEventListener("click", () => {
             this.sound.playSfx("button");
-            if (isPlayable && game.id === "dont-hurt-the-cats") {
+            if (isPlayable && game.id === "burrow-dash") {
+              this.openBurrowDash();
+            } else if (isPlayable && game.id === "dont-hurt-the-cats") {
               this.openPrestartModal();
             } else if (isPlayable && game.id === "cat-tac-toe") {
               this.openCatTacToe();
@@ -2569,17 +3682,15 @@
         });
       }
 
-      /* ------------------------------------------------------------------------
-         NAVIGATION & MODALS
-         ------------------------------------------------------------------------ */
       goHome() {
         this.isRunning = false;
         this._clearAllTimers();
         this._resetAllHoles();
         this.sound.stopMusic();
         this.ttt.hideAll();
+        this.race.hideAll();
 
-        document.body.classList.remove("game-playing");
+        document.body.classList.remove("game-playing", "racing-playing");
         this.dom.crosshair.classList.remove("active");
         this.dom.prestartOverlay.classList.add("hidden");
         this.dom.gameoverOverlay.classList.add("hidden");
@@ -2588,13 +3699,31 @@
         this._updateHud();
       }
 
+      openBurrowDash() {
+        this.isRunning = false;
+        this._clearAllTimers();
+        this._resetAllHoles();
+        this.sound.stopMusic();
+        this.ttt.hideAll();
+
+        document.body.classList.remove("game-playing");
+        this.dom.crosshair.classList.remove("active");
+        this.dom.homepageView.classList.add("hidden");
+        this.dom.gameStageView.classList.add("hidden");
+        this.dom.prestartOverlay.classList.add("hidden");
+        this.dom.gameoverOverlay.classList.add("hidden");
+
+        this.race.openCharacterSelector();
+      }
+
       openCatTacToe() {
         this.isRunning = false;
         this._clearAllTimers();
         this._resetAllHoles();
         this.sound.stopMusic();
+        this.race.hideAll();
 
-        document.body.classList.remove("game-playing");
+        document.body.classList.remove("game-playing", "racing-playing");
         this.dom.crosshair.classList.remove("active");
         this.dom.homepageView.classList.add("hidden");
         this.dom.gameStageView.classList.add("hidden");
@@ -2617,8 +3746,9 @@
         this._resetAllHoles();
         this.sound.stopMusic();
         this.ttt.hideAll();
+        this.race.hideAll();
 
-        document.body.classList.remove("game-playing");
+        document.body.classList.remove("game-playing", "racing-playing");
         this.dom.crosshair.classList.remove("active");
         this.dom.homepageView.classList.add("hidden");
         this.dom.gameStageView.classList.remove("hidden");
@@ -2626,9 +3756,6 @@
         this.dom.prestartOverlay.classList.remove("hidden");
       }
 
-      /* ------------------------------------------------------------------------
-         60-SECOND GAMEPLAY & GRADUAL POST-20s SPEED RAMP
-         ------------------------------------------------------------------------ */
       _buildRabbitHoles() {
         this.dom.grid.innerHTML = "";
         this.holes = [];
@@ -2710,6 +3837,11 @@
           this.goHome();
         });
 
+        document.getElementById("btn-top-race").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.openBurrowDash();
+        });
+
         document.getElementById("btn-top-play").addEventListener("click", () => {
           this.sound.playSfx("button");
           this.openPrestartModal();
@@ -2718,6 +3850,11 @@
         document.getElementById("btn-top-games").addEventListener("click", () => {
           this.sound.playSfx("button");
           this.scrollToGamesSection();
+        });
+
+        document.getElementById("hero-start-race-btn").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.openBurrowDash();
         });
 
         document.getElementById("hero-start-btn").addEventListener("click", () => {
@@ -2787,6 +3924,7 @@
         this._clearAllTimers();
         this._resetAllHoles();
         this.ttt.hideAll();
+        this.race.hideAll();
 
         this.isRunning = true;
         this.score = 0;
@@ -3157,9 +4295,7 @@
             bestCombo: Math.max(curr.bestCombo, combo)
           };
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(next));
-        } catch {
-          // Ignore storage errors
-        }
+        } catch {}
       }
 
       _clearAllTimers() {
