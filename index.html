@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BURROW ARCADE — Don't Hurt The Cats, Cat-Tac-Toe & Burrow Dash</title>
+  <title>BURROW ARCADE — Don't Hurt The Cats, Cat-Tac-Toe, Burrow Dash & Character Crush</title>
   <style>
     /* ==========================================================================
        THEME VARIABLES (Overridden by ARCADE_CONFIG.visuals)
@@ -1082,6 +1082,254 @@
       border-color: var(--accent);
     }
 
+    /* ==========================================================================
+       CHARACTER CRUSH (50-LEVEL MATCH-3 STAGE VIEW)
+       ========================================================================== */
+    #crush-stage-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: calc(100vh - 58px);
+      padding-bottom: 20px;
+    }
+
+    #crush-stage-view.hidden {
+      display: none;
+    }
+
+    .crush-shell {
+      flex: 1;
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 10px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .crush-banner-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(34, 50, 38, 0.62);
+      border: 1px solid rgba(242, 236, 225, 0.1);
+    }
+
+    .crush-level-badge {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .crush-status-msg {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: var(--cream);
+    }
+
+    .crush-progress-track {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(17, 21, 18, 0.8);
+      border: 1px solid rgba(242, 236, 225, 0.12);
+      overflow: hidden;
+    }
+
+    .crush-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #ffd166);
+      transition: width 0.25s ease;
+    }
+
+    .crush-board-wrap {
+      position: relative;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(17, 21, 18, 0.82);
+      border: 1.5px solid var(--olive-border);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
+      touch-action: none;
+    }
+
+    .crush-grid {
+      display: grid;
+      gap: 6px;
+    }
+
+    .crush-cell {
+      position: relative;
+      width: clamp(42px, 8.8vw, 68px);
+      height: clamp(42px, 8.8vw, 68px);
+      border-radius: 10px;
+      background: rgba(34, 50, 38, 0.72);
+      border: 1.5px solid rgba(242, 236, 225, 0.11);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+    }
+
+    .crush-cell:hover:not(.blocked) {
+      border-color: rgba(242, 236, 225, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .crush-cell.selected {
+      border-color: #ffd166;
+      box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.45), 0 8px 18px rgba(0, 0, 0, 0.5);
+      transform: scale(1.06);
+      z-index: 3;
+    }
+
+    .crush-cell.blocked {
+      background: rgba(20, 13, 9, 0.9);
+      border-color: rgba(184, 41, 41, 0.45);
+      cursor: not-allowed;
+    }
+
+    .crush-cell.jelly::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(92, 225, 230, 0.75);
+      background: rgba(92, 225, 230, 0.14);
+      border-radius: 9px;
+      pointer-events: none;
+    }
+
+    .crush-cell.matched {
+      animation: crushPop 0.24s ease forwards;
+    }
+
+    @keyframes crushPop {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.22); filter: brightness(1.8); }
+      100% { transform: scale(0.2); opacity: 0; }
+    }
+
+    .crush-candy-badge {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 3px;
+      font-family: var(--font-mono);
+      pointer-events: none;
+    }
+
+    .crush-candy-badge img {
+      width: 72%;
+      height: 72%;
+      object-fit: contain;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+    }
+
+    .crush-candy-code {
+      font-size: 0.58rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: var(--cream);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+    }
+
+    .crush-special-tag {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      font-weight: 900;
+      background: rgba(17, 21, 18, 0.88);
+      color: #ffd166;
+      border: 1px solid rgba(255, 209, 102, 0.65);
+    }
+
+    .crush-blocker-label {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 900;
+      color: #ff8a80;
+      letter-spacing: 0.06em;
+    }
+
+    .crush-level-picker {
+      width: 100%;
+      max-width: 680px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(17, 21, 18, 0.62);
+      border: 1px solid rgba(242, 236, 225, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .crush-level-picker-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--cream-muted);
+    }
+
+    .crush-level-buttons {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .crush-lvl-btn {
+      flex: 0 0 auto;
+      min-width: 40px;
+      padding: 6px 8px;
+      border-radius: 7px;
+      border: 1px solid var(--olive-border);
+      background: rgba(34, 50, 38, 0.75);
+      color: var(--cream);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .crush-lvl-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--charcoal);
+    }
+
+    .crush-lvl-btn.cleared {
+      border-color: #5ce1e6;
+      color: #5ce1e6;
+    }
+
+    .crush-lvl-btn.active.cleared {
+      color: var(--charcoal);
+    }
+
     /* Character Choice Cards (Payesh vs Melow) */
     .racer-choice-grid {
       display: grid;
@@ -1671,7 +1919,8 @@
       </button>
 
       <div class="top-actions">
-        <button type="button" class="pill-btn primary" id="btn-top-race">Burrow Dash</button>
+        <button type="button" class="pill-btn primary" id="btn-top-crush">Character Crush</button>
+        <button type="button" class="pill-btn" id="btn-top-race">Burrow Dash</button>
         <button type="button" class="pill-btn" id="btn-top-play">Shooter</button>
         <button type="button" class="pill-btn" id="btn-top-games">Games Section</button>
         <button type="button" class="pill-btn" id="btn-toggle-music">Music: ON</button>
@@ -1684,13 +1933,14 @@
          ====================================================================== -->
     <main id="homepage-view">
       <section class="hero-minimal">
-        <span class="hero-tag">Arcade Hub • 3-Lane Racing, Shooter &amp; Cat-Tac-Toe</span>
+        <span class="hero-tag">Arcade Hub • Character Crush, 3-Lane Racing, Shooter &amp; Cat-Tac-Toe</span>
         <h1 class="hero-title">DON'T HURT THE CATS.</h1>
         <p class="hero-subtitle">
-          Race across three lanes as Payesh or Melow dodging Ragib, Tanha, Neha, burrow logs, and rocks while grabbing fish and canned chicken cat food—or jump into the 60s shooter and Cat-Tac-Toe.
+          Match Payesh, Melow, Ragib, Tanha, Neha, and bonus cast candies across 50 levels in Character Crush—or race in Burrow Dash, play the 60s shooter, and try Cat-Tac-Toe.
         </p>
         <div class="hero-actions">
-          <button type="button" class="btn-hero main" id="hero-start-race-btn">Play Burrow Dash</button>
+          <button type="button" class="btn-hero main" id="hero-start-crush-btn">Play Character Crush (50 Lvls)</button>
+          <button type="button" class="btn-hero outline" id="hero-start-race-btn">Play Burrow Dash</button>
           <button type="button" class="btn-hero outline" id="hero-start-btn">Start 60s Shooter</button>
           <button type="button" class="btn-hero outline" id="hero-go-games-btn">Go to Games Section</button>
         </div>
@@ -1709,12 +1959,12 @@
         <div class="cast-strip" id="cast-grid"></div>
 
         <div class="cast-status-bar">
-          <span id="cast-reaction-text">Payesh and Melow are your racers (and protected in Shooter); Ragib, Tanha, and Neha appear as targets or track obstacles.</span>
+          <span id="cast-reaction-text">Payesh and Melow are your racers (and protected in Shooter); Ragib, Tanha, and Neha appear as targets, track obstacles, and crush candies.</span>
           <button type="button" class="pill-btn" id="btn-cast-chaos">Tap All 5</button>
         </div>
       </section>
 
-      <!-- Fast Blitz Mini-Warmup Bar -->
+      <!-- Fast Blitz Mini-Warmup Card -->
       <section class="blitz-bar">
         <div class="blitz-info">
           <h3>5-Second Reflex Warmup</h3>
@@ -1733,7 +1983,7 @@
             <h2 class="section-title">Games</h2>
             <p class="section-note">Playable games now, plus slots ready when you add more games in <code>ARCADE_CONFIG.games</code>.</p>
           </div>
-          <span class="pill-btn" id="games-count-badge">3 Live</span>
+          <span class="pill-btn" id="games-count-badge">4 Live</span>
         </div>
         <div class="games-grid" id="games-grid"></div>
       </section>
@@ -1844,7 +2094,7 @@
 
     <!-- ======================================================================
          BURROW DASH RACING STAGE VIEW (3 LANES: PAYESH OR MELOW)
-         ====================================================================== -->
+         ========================================================================== -->
     <section id="race-stage-view" class="hidden">
       <div id="hud">
         <div class="hud-group">
@@ -1897,6 +2147,64 @@
           <span><strong>Fish:</strong> Points • <strong>Chicken Can:</strong> Big Points</span>
           <span>•</span>
           <span><strong>3 Lives</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         CHARACTER CRUSH STAGE VIEW (50 LEVELS: EASY TO HARD)
+         ========================================================================== -->
+    <section id="crush-stage-view" class="hidden">
+      <div id="hud">
+        <div class="hud-group">
+          <div class="stat-box">
+            <span class="stat-label">Level</span>
+            <span class="stat-value accent" id="crush-hud-level">1 / 50</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Moves</span>
+            <span class="stat-value urgent" id="crush-hud-moves">24</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Score</span>
+            <span class="stat-value" id="crush-hud-score">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Target</span>
+            <span class="stat-value boost" id="crush-hud-target">900</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Best Total</span>
+            <span class="stat-value food" id="crush-hud-best">0</span>
+          </div>
+        </div>
+
+        <div class="hud-group">
+          <button type="button" class="pill-btn" id="btn-crush-restart">Restart Level</button>
+          <button type="button" class="pill-btn" id="btn-crush-exit">Homepage</button>
+        </div>
+      </div>
+
+      <div class="crush-shell">
+        <div class="crush-banner-row">
+          <span class="crush-level-badge" id="crush-tier-label">TIER 1 • EASY</span>
+          <span class="crush-status-msg" id="crush-status-msg">Match 3+ characters! 4 = Line Blast, 5 = Rainbow Star.</span>
+        </div>
+
+        <div class="crush-progress-track">
+          <div class="crush-progress-fill" id="crush-progress-fill"></div>
+        </div>
+
+        <div class="crush-board-wrap" id="crush-board-wrap">
+          <div class="crush-grid" id="crush-grid"></div>
+        </div>
+
+        <div class="crush-level-picker">
+          <div class="crush-level-picker-head">
+            <span>50 LEVELS (EASY → HARD) • Jump to any level</span>
+            <span id="crush-cleared-count">0 / 50 Cleared</span>
+          </div>
+          <div class="crush-level-buttons" id="crush-level-buttons"></div>
         </div>
       </div>
     </section>
@@ -1999,6 +2307,38 @@
       <button type="button" class="btn-primary" id="btn-race-crash-action">CONTINUE RUN</button>
       <button type="button" class="btn-secondary" id="btn-race-choose-again">SWITCH PAYESH / MELOW</button>
       <button type="button" class="btn-secondary" id="btn-race-over-home">HOMEPAGE</button>
+    </div>
+  </section>
+
+  <!-- CHARACTER CRUSH LEVEL CLEAR / GAME OVER PHOTOCARD MODAL -->
+  <section id="crush-end-overlay" class="overlay-screen hidden">
+    <div class="panel">
+      <div class="crash-card-frame" id="crush-card-frame">
+        <img class="crash-card-img" id="crush-card-img" src="assets/photocards/race-crash-0-lives.jpg" alt="Crush Result Photocard" />
+
+        <div class="crash-card-fallback">
+          <img id="crush-card-sprite" src="assets/characters/payesh.png" alt="Character" />
+        </div>
+
+        <div class="crash-card-caption">
+          <div class="crash-lives-badge" id="crush-card-badge">OUT OF MOVES</div>
+          <div class="crash-card-title" id="crush-card-title">LEVEL FAILED!</div>
+          <div class="crash-card-sub" id="crush-card-sub">Score did not reach target before moves ran out.</div>
+          <div class="crash-card-path" id="crush-card-path">Photocard: assets/photocards/race-crash-0-lives.jpg</div>
+        </div>
+      </div>
+
+      <div class="rules-card" style="margin-bottom:14px; padding:10px 12px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.78rem;">
+          <span>LEVEL: <strong id="crush-end-level">1/50</strong></span>
+          <span>SCORE: <strong id="crush-end-score">0</strong></span>
+          <span>TARGET: <strong id="crush-end-target">900</strong></span>
+          <span>COMBO: <strong id="crush-end-combo">1x</strong></span>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="btn-crush-end-action">RETRY LEVEL</button>
+      <button type="button" class="btn-secondary" id="btn-crush-end-home">HOMEPAGE</button>
     </div>
   </section>
 
@@ -2113,7 +2453,6 @@
           }
         },
         maxLives: 3,
-        // Gentle, easy start (0.7x relative to 360) that ramps up slowly over ~90s
         baseSpeedPxPerSec: 250,
         maxSpeedPxPerSec: 780,
         speedRampPerSec: 5.8,
@@ -2126,7 +2465,31 @@
         }
       },
 
+      crush: {
+        totalLevels: 50,
+        gameOverPhotocard: "assets/photocards/race-crash-0-lives.jpg",
+        candies: [
+          { id: "payesh", name: "Payesh", code: "PAY", image: "assets/characters/payesh.png", color: "#f2ece1" },
+          { id: "melow", name: "Melow", code: "MEL", image: "assets/characters/melow.png", color: "#ff9f43" },
+          { id: "ragib", name: "Ragib", code: "RAG", image: "assets/characters/ragib.png", color: "#ff6b6b" },
+          { id: "tanha", name: "Tanha", code: "TAN", image: "assets/characters/tanha.png", color: "#feca57" },
+          { id: "neha", name: "Neha", code: "NEH", image: "assets/characters/neha.png", color: "#ff78c4" },
+          { id: "mochi", name: "Mochi", code: "MOC", image: "assets/characters/mochi.png", color: "#5ce1e6" },
+          { id: "boba", name: "Boba", code: "BOB", image: "assets/characters/boba.png", color: "#a29bfe" },
+          { id: "pip", name: "Pip", code: "PIP", image: "assets/characters/pip.png", color: "#55efc4" },
+          { id: "zuzu", name: "Zuzu", code: "ZUZ", image: "assets/characters/zuzu.png", color: "#fd79a8" }
+        ]
+      },
+
       games: [
+        {
+          id: "character-crush",
+          title: "CHARACTER CRUSH",
+          tag: "50 LEVELS • MATCH-3",
+          status: "playable",
+          description: "Match Payesh, Melow, Ragib, Tanha, Neha & bonus cast candies across 50 levels from Easy to Hard with line blasts, rainbow stars, and blockers.",
+          meta: "50 LEVELS • SPECIAL COMBOS • EASY → HARD"
+        },
         {
           id: "burrow-dash",
           title: "BURROW DASH",
@@ -2150,14 +2513,6 @@
           status: "playable",
           description: "Classic 3x3 grid starring Payesh and Melow instead of X and O. Play against Meaw or challenge another player locally.",
           meta: "VS MEAW OR 2P • PHOTOCARD REWARDS"
-        },
-        {
-          id: "slot-game-4",
-          title: "FUTURE GAME #4",
-          tag: "OPEN SLOT",
-          status: "coming-soon",
-          description: "Reserved arcade slot for another mini-game or high-score mode.",
-          meta: "CUSTOMIZABLE SLOT"
         }
       ],
 
@@ -2172,7 +2527,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Ragib: Watch the lanes in Burrow Dash—you have 3 lives, so don't waste them!"
+          pokeLine: "Ragib: Line up 4 or 5 characters in Character Crush for huge blasts!"
         },
         {
           id: "tanha",
@@ -2184,7 +2539,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Tanha: Canned chicken cat food gives way more points than regular fish!"
+          pokeLine: "Tanha: Higher levels add blockers and tighter moves—plan cascades early!"
         },
         {
           id: "neha",
@@ -2196,7 +2551,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Neha: The track starts calm and slow—take your time lining up treats."
+          pokeLine: "Neha: All 5 main characters plus bonus friends appear as crush candies!"
         },
         {
           id: "payesh",
@@ -2208,7 +2563,7 @@
           offsetY: 0,
           frequency: 0.9,
           appearSound: "catWarning",
-          pokeLine: "Payesh (White Cat): Ready to race with 3 lives—and protected in Shooter!"
+          pokeLine: "Payesh (White Cat): Ready to crush combos and race across 3 lanes!"
         },
         {
           id: "melow",
@@ -2220,7 +2575,7 @@
           offsetY: 0,
           frequency: 0.9,
           appearSound: "catWarning",
-          pokeLine: "Melow (Orange Cat): Loves canned chicken cat food for extra points!"
+          pokeLine: "Melow (Orange Cat): Chain reactions give massive cascade multipliers!"
         }
       ],
 
@@ -2277,7 +2632,7 @@
 
     /**
      * ============================================================================
-     * SOUND ENGINE
+     * SOUND ENGINE (ADDICTIVE SYNTH BGM + SFX + FILE SUPPORT)
      * ============================================================================
      */
     class SoundEngine {
@@ -2380,21 +2735,23 @@
       _startSynthBgm() {
         if (!this.ctx) return;
         this.synthStep = 0;
-        const bassNotes = [55, 55, 65.41, 55, 73.42, 65.41, 49.0, 55];
+        // Catchy arcade pentatonic melody + groovy bassline
+        const bassNotes = [110, 110, 130.81, 146.83, 164.81, 146.83, 130.81, 98.0];
+        const leadNotes = [440, 0, 523.25, 659.25, 587.33, 523.25, 659.25, 783.99, 659.25, 587.33, 523.25, 440, 523.25, 587.33, 659.25, 0];
 
         this.synthBgmTimer = setInterval(() => {
           if (!this.isBgmPlaying || this.musicMuted || this.musicVolume <= 0.01) return;
           const now = this.ctx.currentTime;
           const step = this.synthStep % 16;
-          const vol = this.musicVolume * 0.26;
+          const vol = this.musicVolume * 0.24;
 
           if (step % 4 === 0) {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = "sine";
-            osc.frequency.setValueAtTime(135, now);
-            osc.frequency.exponentialRampToValueAtTime(36, now + 0.11);
-            gain.gain.setValueAtTime(vol * 1.3, now);
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.exponentialRampToValueAtTime(38, now + 0.11);
+            gain.gain.setValueAtTime(vol * 1.25, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
             osc.connect(gain).connect(this.ctx.destination);
             osc.start(now);
@@ -2406,20 +2763,32 @@
             const osc = this.ctx.createOscillator();
             const filter = this.ctx.createBiquadFilter();
             const gain = this.ctx.createGain();
-            osc.type = "sawtooth";
+            osc.type = "triangle";
             osc.frequency.setValueAtTime(freq, now);
             filter.type = "lowpass";
-            filter.frequency.setValueAtTime(340, now);
-            filter.frequency.exponentialRampToValueAtTime(110, now + 0.16);
-            gain.gain.setValueAtTime(vol * 0.8, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+            filter.frequency.setValueAtTime(520, now);
+            gain.gain.setValueAtTime(vol * 0.72, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
             osc.connect(filter).connect(gain).connect(this.ctx.destination);
             osc.start(now);
-            osc.stop(now + 0.19);
+            osc.stop(now + 0.17);
+          }
+
+          const leadFreq = leadNotes[step];
+          if (leadFreq > 0) {
+            const lOsc = this.ctx.createOscillator();
+            const lGain = this.ctx.createGain();
+            lOsc.type = "square";
+            lOsc.frequency.setValueAtTime(leadFreq, now);
+            lGain.gain.setValueAtTime(vol * 0.22, now);
+            lGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            lOsc.connect(lGain).connect(this.ctx.destination);
+            lOsc.start(now);
+            lOsc.stop(now + 0.13);
           }
 
           this.synthStep++;
-        }, 115);
+        }, 125);
       }
 
       playSfx(name) {
@@ -2447,17 +2816,44 @@
           gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
           src.connect(gain).connect(this.ctx.destination);
           src.start(now);
-        } else if (name === "hit") {
+        } else if (name === "hit" || name === "crushPop") {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = "triangle";
           osc.frequency.setValueAtTime(520, now);
-          osc.frequency.exponentialRampToValueAtTime(980, now + 0.09);
+          osc.frequency.exponentialRampToValueAtTime(1040, now + 0.11);
           gain.gain.setValueAtTime(v * 0.45, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
           osc.connect(gain).connect(this.ctx.destination);
           osc.start(now);
-          osc.stop(now + 0.11);
+          osc.stop(now + 0.13);
+        } else if (name === "crushCombo" || name === "crushSpecial") {
+          const notes = name === "crushSpecial" ? [523.25, 659.25, 783.99, 1046.5] : [440, 587.33, 783.99];
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "triangle";
+            const t0 = now + idx * 0.055;
+            osc.frequency.setValueAtTime(freq, t0);
+            gain.gain.setValueAtTime(v * 0.42, t0);
+            gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.14);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(t0);
+            osc.stop(t0 + 0.15);
+          });
+        } else if (name === "crushWin") {
+          [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "sine";
+            const t0 = now + idx * 0.08;
+            osc.frequency.setValueAtTime(freq, t0);
+            gain.gain.setValueAtTime(v * 0.45, t0);
+            gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.22);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(t0);
+            osc.stop(t0 + 0.24);
+          });
         } else if (name === "boost" || name === "canFood") {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
@@ -2518,10 +2914,786 @@
 
     /**
      * ============================================================================
+     * CHARACTER CRUSH — 50 LEVELS (EASY TO HARD) MATCH-3 ENGINE
+     * ============================================================================
+     */
+    class CharacterCrushController {
+      constructor(config, sound, arcade, onExitHome) {
+        this.config = config;
+        this.crushCfg = config.crush;
+        this.sound = sound;
+        this.arcade = arcade;
+        this.onExitHome = onExitHome;
+
+        this.currentLevel = 1;
+        this.levelSpec = null;
+        this.grid = [];
+        this.selected = null;
+        this.isBusy = false;
+        this.score = 0;
+        this.movesLeft = 24;
+        this.maxCascade = 1;
+        this.swipeStart = null;
+
+        this.STORAGE_CLEARED = "character_crush_cleared_v1";
+        this.STORAGE_BEST = "character_crush_best_v1";
+
+        this.dom = {
+          stageView: document.getElementById("crush-stage-view"),
+          endOverlay: document.getElementById("crush-end-overlay"),
+          hudLevel: document.getElementById("crush-hud-level"),
+          hudMoves: document.getElementById("crush-hud-moves"),
+          hudScore: document.getElementById("crush-hud-score"),
+          hudTarget: document.getElementById("crush-hud-target"),
+          hudBest: document.getElementById("crush-hud-best"),
+          tierLabel: document.getElementById("crush-tier-label"),
+          statusMsg: document.getElementById("crush-status-msg"),
+          progressFill: document.getElementById("crush-progress-fill"),
+          boardWrap: document.getElementById("crush-board-wrap"),
+          gridEl: document.getElementById("crush-grid"),
+          levelButtonsEl: document.getElementById("crush-level-buttons"),
+          clearedCountEl: document.getElementById("crush-cleared-count"),
+          cardFrame: document.getElementById("crush-card-frame"),
+          cardImg: document.getElementById("crush-card-img"),
+          cardSprite: document.getElementById("crush-card-sprite"),
+          cardBadge: document.getElementById("crush-card-badge"),
+          cardTitle: document.getElementById("crush-card-title"),
+          cardSub: document.getElementById("crush-card-sub"),
+          cardPath: document.getElementById("crush-card-path"),
+          endLevel: document.getElementById("crush-end-level"),
+          endScore: document.getElementById("crush-end-score"),
+          endTarget: document.getElementById("crush-end-target"),
+          endCombo: document.getElementById("crush-end-combo"),
+          btnEndAction: document.getElementById("btn-crush-end-action")
+        };
+
+        this._bindEvents();
+      }
+
+      _bindEvents() {
+        document.getElementById("btn-crush-exit").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.onExitHome();
+        });
+
+        document.getElementById("btn-crush-restart").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.startLevel(this.currentLevel);
+        });
+
+        document.getElementById("btn-crush-end-home").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.onExitHome();
+        });
+
+        this.dom.btnEndAction.addEventListener("click", () => {
+          this.sound.playSfx("button");
+          const passed = this.score >= this.levelSpec.targetScore;
+          this.dom.endOverlay.classList.add("hidden");
+          if (passed) {
+            const nextLvl = this.currentLevel < this.crushCfg.totalLevels ? this.currentLevel + 1 : 1;
+            this.startLevel(nextLvl);
+          } else {
+            this.startLevel(this.currentLevel);
+          }
+        });
+
+        this.dom.cardImg.addEventListener("error", () => {
+          this.dom.cardFrame.classList.add("img-error");
+        });
+        this.dom.cardImg.addEventListener("load", () => {
+          this.dom.cardFrame.classList.remove("img-error");
+        });
+      }
+
+      hideAll() {
+        this.dom.stageView.classList.add("hidden");
+        this.dom.endOverlay.classList.add("hidden");
+        this.sound.stopMusic();
+      }
+
+      _getLevelSpec(levelNum) {
+        const lvl = Math.max(1, Math.min(this.crushCfg.totalLevels, levelNum));
+        let size = 7;
+        let candyCount = 5;
+        let moves = 26;
+        let blockers = 0;
+        let jellies = 0;
+        let tier = "TIER 1 • EASY";
+
+        if (lvl <= 10) {
+          size = 7;
+          candyCount = lvl <= 4 ? 5 : 6;
+          moves = Math.max(22, 28 - Math.floor((lvl - 1) / 2));
+          blockers = lvl >= 7 ? lvl - 6 : 0;
+          jellies = lvl >= 4 ? lvl - 3 : 0;
+          tier = "TIER 1 • EASY";
+        } else if (lvl <= 25) {
+          size = 7;
+          candyCount = 6;
+          moves = Math.max(18, 24 - Math.floor((lvl - 11) / 3));
+          blockers = 3 + Math.floor((lvl - 11) / 3);
+          jellies = 4 + Math.floor((lvl - 11) / 2);
+          tier = "TIER 2 • MEDIUM";
+        } else if (lvl <= 40) {
+          size = 8;
+          candyCount = lvl >= 33 ? 8 : 7;
+          moves = Math.max(16, 22 - Math.floor((lvl - 26) / 4));
+          blockers = 6 + Math.floor((lvl - 26) / 3);
+          jellies = 8 + Math.floor((lvl - 26) / 2);
+          tier = "TIER 3 • HARD";
+        } else {
+          size = 8;
+          candyCount = 9;
+          moves = Math.max(14, 19 - Math.floor((lvl - 41) / 3));
+          blockers = 10 + Math.floor((lvl - 41) / 2);
+          jellies = 14 + (lvl - 41);
+          tier = "TIER 4 • EXTREME";
+        }
+
+        const targetScore = Math.round((850 + lvl * 240 + (lvl > 25 ? (lvl - 25) * 180 : 0)) / 50) * 50;
+        const pool = this.crushCfg.candies.slice(0, Math.min(this.crushCfg.candies.length, candyCount));
+
+        return {
+          level: lvl,
+          size,
+          pool,
+          moves,
+          targetScore,
+          blockers,
+          jellies,
+          tier
+        };
+      }
+
+      _loadCleared() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(this.STORAGE_CLEARED) || "[]");
+          return Array.isArray(raw) ? raw : [];
+        } catch {
+          return [];
+        }
+      }
+
+      _markCleared(levelNum) {
+        const set = new Set(this._loadCleared());
+        set.add(levelNum);
+        try {
+          localStorage.setItem(this.STORAGE_CLEARED, JSON.stringify([...set]));
+        } catch {}
+      }
+
+      _loadBest() {
+        try {
+          return Number(localStorage.getItem(this.STORAGE_BEST)) || 0;
+        } catch {
+          return 0;
+        }
+      }
+
+      _saveBest(score) {
+        const next = Math.max(this._loadBest(), score);
+        try {
+          localStorage.setItem(this.STORAGE_BEST, String(next));
+        } catch {}
+        return next;
+      }
+
+      _renderLevelPicker() {
+        const cleared = new Set(this._loadCleared());
+        this.dom.clearedCountEl.textContent = `${cleared.size} / ${this.crushCfg.totalLevels} Cleared`;
+        this.dom.levelButtonsEl.innerHTML = "";
+
+        for (let i = 1; i <= this.crushCfg.totalLevels; i++) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "crush-lvl-btn";
+          if (i === this.currentLevel) btn.classList.add("active");
+          if (cleared.has(i)) btn.classList.add("cleared");
+          btn.textContent = String(i);
+          btn.addEventListener("click", () => {
+            this.sound.playSfx("button");
+            this.startLevel(i);
+          });
+          this.dom.levelButtonsEl.appendChild(btn);
+        }
+      }
+
+      startLevel(levelNum = 1) {
+        this.arcade._stopAllForModeSwitch();
+        this.currentLevel = Math.max(1, Math.min(this.crushCfg.totalLevels, levelNum));
+        this.levelSpec = this._getLevelSpec(this.currentLevel);
+
+        this.dom.stageView.classList.remove("hidden");
+        this.dom.endOverlay.classList.add("hidden");
+
+        this.score = 0;
+        this.movesLeft = this.levelSpec.moves;
+        this.maxCascade = 1;
+        this.selected = null;
+        this.isBusy = false;
+
+        this._buildBoardWithoutInitialMatches();
+        this._renderLevelPicker();
+        this._renderBoard();
+        this._updateHud();
+        this.dom.statusMsg.textContent = `Level ${this.currentLevel} (${this.levelSpec.pool.length} characters) — Reach ${this.levelSpec.targetScore} pts in ${this.levelSpec.moves} moves!`;
+        this.sound.startMusic();
+      }
+
+      _randomCandy(pool) {
+        const c = pool[Math.floor(Math.random() * pool.length)];
+        return {
+          typeId: c.id,
+          name: c.name,
+          code: c.code,
+          image: c.image,
+          color: c.color,
+          special: null // null | 'row' | 'col' | 'bomb'
+        };
+      }
+
+      _buildBoardWithoutInitialMatches() {
+        const { size, pool, blockers, jellies } = this.levelSpec;
+        this.grid = Array.from({ length: size }, (_, r) =>
+          Array.from({ length: size }, (__, c) => ({
+            r,
+            c,
+            blocked: false,
+            jelly: false,
+            candy: this._randomCandy(pool),
+            matched: false
+          }))
+        );
+
+        // Avoid starting matches
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            let guard = 0;
+            while (this._createsMatchAt(r, c) && guard < 25) {
+              this.grid[r][c].candy = this._randomCandy(pool);
+              guard++;
+            }
+          }
+        }
+
+        // Place blockers away from center swap zone
+        let placedBlockers = 0;
+        let guardB = 0;
+        while (placedBlockers < blockers && guardB < 200) {
+          guardB++;
+          const r = Math.floor(Math.random() * size);
+          const c = Math.floor(Math.random() * size);
+          if (!this.grid[r][c].blocked && !(r === Math.floor(size / 2) && c === Math.floor(size / 2))) {
+            this.grid[r][c].blocked = true;
+            this.grid[r][c].candy = null;
+            placedBlockers++;
+          }
+        }
+
+        // Place jelly tiles on non-blocked cells
+        let placedJellies = 0;
+        let guardJ = 0;
+        while (placedJellies < jellies && guardJ < 200) {
+          guardJ++;
+          const r = Math.floor(Math.random() * size);
+          const c = Math.floor(Math.random() * size);
+          if (!this.grid[r][c].blocked && !this.grid[r][c].jelly) {
+            this.grid[r][c].jelly = true;
+            placedJellies++;
+          }
+        }
+
+        if (!this._hasAnyValidMove()) {
+          this._shuffleBoard(true);
+        }
+      }
+
+      _createsMatchAt(r, c) {
+        const cell = this.grid[r][c];
+        if (!cell || cell.blocked || !cell.candy) return false;
+        const id = cell.candy.typeId;
+        if (
+          c >= 2 &&
+          !this.grid[r][c - 1].blocked && this.grid[r][c - 1].candy?.typeId === id &&
+          !this.grid[r][c - 2].blocked && this.grid[r][c - 2].candy?.typeId === id
+        ) return true;
+        if (
+          r >= 2 &&
+          !this.grid[r - 1][c].blocked && this.grid[r - 1][c].candy?.typeId === id &&
+          !this.grid[r - 2][c].blocked && this.grid[r - 2][c].candy?.typeId === id
+        ) return true;
+        return false;
+      }
+
+      _renderBoard() {
+        const size = this.levelSpec.size;
+        this.dom.gridEl.style.gridTemplateColumns = `repeat(${size}, auto)`;
+        this.dom.gridEl.innerHTML = "";
+
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            const cell = this.grid[r][c];
+            const el = document.createElement("button");
+            el.type = "button";
+            el.className = "crush-cell";
+            if (cell.blocked) el.classList.add("blocked");
+            if (cell.jelly) el.classList.add("jelly");
+            if (this.selected && this.selected.r === r && this.selected.c === c) {
+              el.classList.add("selected");
+            }
+            if (cell.matched) el.classList.add("matched");
+
+            if (cell.blocked) {
+              el.innerHTML = `<span class="crush-blocker-label">ROCK</span>`;
+            } else if (cell.candy) {
+              const badge = document.createElement("div");
+              badge.className = "crush-candy-badge";
+              badge.style.background = `radial-gradient(circle at 30% 25%, ${cell.candy.color}33, rgba(17,21,18,0.4))`;
+
+              const img = document.createElement("img");
+              img.src = cell.candy.image;
+              img.alt = cell.candy.name;
+              img.addEventListener("error", () => {
+                img.style.display = "none";
+              });
+
+              const code = document.createElement("span");
+              code.className = "crush-candy-code";
+              code.textContent = cell.candy.code;
+
+              badge.appendChild(img);
+              badge.appendChild(code);
+              el.appendChild(badge);
+
+              if (cell.candy.special) {
+                const tag = document.createElement("span");
+                tag.className = "crush-special-tag";
+                tag.textContent = cell.candy.special === "bomb" ? "★5" : cell.candy.special === "row" ? "↔4" : "↕4";
+                el.appendChild(tag);
+              }
+            }
+
+            el.addEventListener("pointerdown", (e) => {
+              if (this.isBusy || cell.blocked) return;
+              this.swipeStart = { r, c, x: e.clientX, y: e.clientY };
+            });
+
+            el.addEventListener("pointerup", (e) => {
+              if (this.isBusy || cell.blocked) return;
+              if (this.swipeStart && this.swipeStart.r === r && this.swipeStart.c === c) {
+                const dx = e.clientX - this.swipeStart.x;
+                const dy = e.clientY - this.swipeStart.y;
+                this.swipeStart = null;
+                if (Math.hypot(dx, dy) > 22) {
+                  const dr = Math.abs(dy) > Math.abs(dx) ? (dy > 0 ? 1 : -1) : 0;
+                  const dc = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 1 : -1) : 0;
+                  const nr = r + dr;
+                  const nc = c + dc;
+                  if (nr >= 0 && nr < size && nc >= 0 && nc < size && !this.grid[nr][nc].blocked) {
+                    this.selected = null;
+                    this._attemptSwap(r, c, nr, nc);
+                    return;
+                  }
+                }
+              }
+              this.swipeStart = null;
+              this._handleCellTap(r, c);
+            });
+
+            this.dom.gridEl.appendChild(el);
+          }
+        }
+      }
+
+      _handleCellTap(r, c) {
+        if (!this.selected) {
+          this.selected = { r, c };
+          this.sound.playSfx("button");
+          this._renderBoard();
+          return;
+        }
+
+        if (this.selected.r === r && this.selected.c === c) {
+          this.selected = null;
+          this.sound.playSfx("button");
+          this._renderBoard();
+          return;
+        }
+
+        const dist = Math.abs(this.selected.r - r) + Math.abs(this.selected.c - c);
+        if (dist === 1) {
+          const r1 = this.selected.r;
+          const c1 = this.selected.c;
+          this.selected = null;
+          this._attemptSwap(r1, c1, r, c);
+        } else {
+          this.selected = { r, c };
+          this.sound.playSfx("button");
+          this._renderBoard();
+        }
+      }
+
+      async _attemptSwap(r1, c1, r2, c2) {
+        const cellA = this.grid[r1][c1];
+        const cellB = this.grid[r2][c2];
+        if (!cellA.candy || !cellB.candy) return;
+
+        this.isBusy = true;
+        this._swapCandies(r1, c1, r2, c2);
+        this._renderBoard();
+
+        // Check Rainbow Star special swap
+        if (cellA.candy.special === "bomb" || cellB.candy.special === "bomb") {
+          this.movesLeft--;
+          this.sound.playSfx("crushSpecial");
+          const targetType = cellA.candy.special === "bomb" ? cellB.candy.typeId : cellA.candy.typeId;
+          this._triggerRainbowClear(targetType, r1, c1, r2, c2);
+          await this._resolveCascades(1);
+          this._afterMoveCheck();
+          return;
+        }
+
+        const matchInfo = this._findMatches();
+        if (matchInfo.groups.length === 0) {
+          await this._sleep(160);
+          this._swapCandies(r1, c1, r2, c2);
+          this.sound.playSfx("miss");
+          this.dom.statusMsg.textContent = "No match there—try another swap!";
+          this._renderBoard();
+          this.isBusy = false;
+          return;
+        }
+
+        this.movesLeft--;
+        this.sound.playSfx("crushPop");
+        await this._processMatchGroups(matchInfo.groups, { r1, c1, r2, c2 }, 1);
+        await this._resolveCascades(2);
+        this._afterMoveCheck();
+      }
+
+      _swapCandies(r1, c1, r2, c2) {
+        const tmp = this.grid[r1][c1].candy;
+        this.grid[r1][c1].candy = this.grid[r2][c2].candy;
+        this.grid[r2][c2].candy = tmp;
+      }
+
+      _findMatches() {
+        const size = this.levelSpec.size;
+        const hRuns = [];
+        const vRuns = [];
+
+        for (let r = 0; r < size; r++) {
+          let c = 0;
+          while (c < size) {
+            const cell = this.grid[r][c];
+            if (cell.blocked || !cell.candy) { c++; continue; }
+            const id = cell.candy.typeId;
+            let end = c + 1;
+            while (end < size && !this.grid[r][end].blocked && this.grid[r][end].candy?.typeId === id) {
+              end++;
+            }
+            if (end - c >= 3) {
+              const cells = [];
+              for (let k = c; k < end; k++) cells.push({ r, c: k });
+              hRuns.push({ cells, axis: "h", typeId: id });
+            }
+            c = end;
+          }
+        }
+
+        for (let c = 0; c < size; c++) {
+          let r = 0;
+          while (r < size) {
+            const cell = this.grid[r][c];
+            if (cell.blocked || !cell.candy) { r++; continue; }
+            const id = cell.candy.typeId;
+            let end = r + 1;
+            while (end < size && !this.grid[end][c].blocked && this.grid[end][c].candy?.typeId === id) {
+              end++;
+            }
+            if (end - r >= 3) {
+              const cells = [];
+              for (let k = r; k < end; k++) cells.push({ r: k, c });
+              vRuns.push({ cells, axis: "v", typeId: id });
+            }
+            r = end;
+          }
+        }
+
+        return { groups: [...hRuns, ...vRuns] };
+      }
+
+      _triggerRainbowClear(targetType, r1, c1, r2, c2) {
+        const size = this.levelSpec.size;
+        let cleared = 0;
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            const cell = this.grid[r][c];
+            if (!cell.blocked && cell.candy && (cell.candy.typeId === targetType || cell.candy.special === "bomb")) {
+              cell.matched = true;
+              if (cell.jelly) {
+                cell.jelly = false;
+                this.score += 60;
+              }
+              cleared++;
+            }
+          }
+        }
+        this.grid[r1][c1].matched = true;
+        this.grid[r2][c2].matched = true;
+        const pts = cleared * 75;
+        this.score += pts;
+        this.dom.statusMsg.textContent = `RAINBOW BLAST! Cleared ${cleared} characters (+${pts} pts)`;
+      }
+
+      async _processMatchGroups(groups, swapCoords, cascadeNum) {
+        if (cascadeNum > this.maxCascade) this.maxCascade = cascadeNum;
+        if (cascadeNum > 1) this.sound.playSfx("crushCombo");
+
+        const toClear = new Set();
+        const spawnedSpecials = [];
+
+        for (const grp of groups) {
+          if (grp.cells.length >= 5) {
+            const anchor = grp.cells[Math.floor(grp.cells.length / 2)];
+            spawnedSpecials.push({ r: anchor.r, c: anchor.c, special: "bomb", candy: { ...this.grid[anchor.r][anchor.c].candy, special: "bomb" } });
+            this.sound.playSfx("crushSpecial");
+          } else if (grp.cells.length === 4) {
+            const anchor = grp.cells[1];
+            const spDir = grp.axis === "h" ? "col" : "row";
+            spawnedSpecials.push({ r: anchor.r, c: anchor.c, special: spDir, candy: { ...this.grid[anchor.r][anchor.c].candy, special: spDir } });
+            this.sound.playSfx("crushSpecial");
+          }
+
+          for (const pt of grp.cells) {
+            toClear.add(`${pt.r},${pt.c}`);
+            const sp = this.grid[pt.r][pt.c].candy?.special;
+            if (sp === "row") {
+              for (let col = 0; col < this.levelSpec.size; col++) {
+                if (!this.grid[pt.r][col].blocked) toClear.add(`${pt.r},${col}`);
+              }
+            } else if (sp === "col") {
+              for (let row = 0; row < this.levelSpec.size; row++) {
+                if (!this.grid[row][pt.c].blocked) toClear.add(`${row},${pt.c}`);
+              }
+            }
+          }
+        }
+
+        let jellyCleared = 0;
+        toClear.forEach((key) => {
+          const [r, c] = key.split(",").map(Number);
+          const cell = this.grid[r][c];
+          if (!cell.blocked && cell.candy) {
+            cell.matched = true;
+            if (cell.jelly) {
+              cell.jelly = false;
+              jellyCleared++;
+            }
+          }
+        });
+
+        const baseGain = toClear.size * 50 + jellyCleared * 60;
+        const mult = 1 + (cascadeNum - 1) * 0.35;
+        const totalGain = Math.round(baseGain * mult);
+        this.score += totalGain;
+
+        this.dom.statusMsg.textContent =
+          cascadeNum > 1
+            ? `CASCADE ${cascadeNum}x! +${totalGain} pts`
+            : `Matched ${toClear.size} characters! +${totalGain} pts`;
+
+        this._renderBoard();
+        this._updateHud();
+        await this._sleep(210);
+
+        const size = this.levelSpec.size;
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            if (this.grid[r][c].matched) {
+              this.grid[r][c].matched = false;
+              this.grid[r][c].candy = null;
+            }
+          }
+        }
+
+        for (const spItem of spawnedSpecials) {
+          if (!this.grid[spItem.r][spItem.c].blocked) {
+            this.grid[spItem.r][spItem.c].candy = spItem.candy;
+          }
+        }
+
+        this._dropAndRefill();
+        this._renderBoard();
+        await this._sleep(160);
+      }
+
+      _dropAndRefill() {
+        const size = this.levelSpec.size;
+        for (let c = 0; c < size; c++) {
+          let writeRow = size - 1;
+          for (let r = size - 1; r >= 0; r--) {
+            if (this.grid[r][c].blocked) {
+              writeRow = r - 1;
+              continue;
+            }
+            if (this.grid[r][c].candy !== null) {
+              if (writeRow !== r) {
+                this.grid[writeRow][c].candy = this.grid[r][c].candy;
+                this.grid[r][c].candy = null;
+              }
+              writeRow--;
+            }
+          }
+          for (let r = writeRow; r >= 0; r--) {
+            if (!this.grid[r][c].blocked && this.grid[r][c].candy === null) {
+              this.grid[r][c].candy = this._randomCandy(this.levelSpec.pool);
+            }
+          }
+        }
+      }
+
+      async _resolveCascades(nextCascade) {
+        let cNum = nextCascade;
+        while (true) {
+          const info = this._findMatches();
+          if (info.groups.length === 0) break;
+          this.sound.playSfx("crushPop");
+          await this._processMatchGroups(info.groups, null, cNum);
+          cNum++;
+        }
+
+        if (!this._hasAnyValidMove()) {
+          this._shuffleBoard(false);
+          this._renderBoard();
+        }
+      }
+
+      _hasAnyValidMove() {
+        const size = this.levelSpec.size;
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            if (this.grid[r][c].blocked || !this.grid[r][c].candy) continue;
+            if (c + 1 < size && !this.grid[r][c + 1].blocked && this.grid[r][c + 1].candy) {
+              this._swapCandies(r, c, r, c + 1);
+              const ok = this._findMatches().groups.length > 0;
+              this._swapCandies(r, c, r, c + 1);
+              if (ok) return true;
+            }
+            if (r + 1 < size && !this.grid[r + 1][c].blocked && this.grid[r + 1][c].candy) {
+              this._swapCandies(r, c, r + 1, c);
+              const ok = this._findMatches().groups.length > 0;
+              this._swapCandies(r, c, r + 1, c);
+              if (ok) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      _shuffleBoard(initial) {
+        const size = this.levelSpec.size;
+        const candies = [];
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            if (!this.grid[r][c].blocked && this.grid[r][c].candy) {
+              candies.push(this.grid[r][c].candy);
+            }
+          }
+        }
+        for (let i = candies.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [candies[i], candies[j]] = [candies[j], candies[i]];
+        }
+        let idx = 0;
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            if (!this.grid[r][c].blocked && this.grid[r][c].candy) {
+              this.grid[r][c].candy = candies[idx++];
+            }
+          }
+        }
+        if (!initial) {
+          this.dom.statusMsg.textContent = "No moves left—board reshuffled automatically!";
+        }
+      }
+
+      _afterMoveCheck() {
+        this._updateHud();
+        const passed = this.score >= this.levelSpec.targetScore;
+        if (passed) {
+          this._markCleared(this.currentLevel);
+          this._saveBest(this.score);
+          this._renderLevelPicker();
+          this.isBusy = false;
+          this.sound.stopMusic();
+          this.sound.playSfx("crushWin");
+          this._showEndCard(true);
+          return;
+        }
+
+        if (this.movesLeft <= 0) {
+          this._saveBest(this.score);
+          this.isBusy = false;
+          this.sound.stopMusic();
+          this.sound.playSfx("gameOver");
+          this._showEndCard(false);
+          return;
+        }
+
+        this.isBusy = false;
+      }
+
+      _showEndCard(passed) {
+        const cardPath = this.crushCfg.gameOverPhotocard;
+        this.dom.cardFrame.classList.remove("img-error");
+        this.dom.cardImg.src = cardPath;
+        this.dom.cardSprite.src = this.config.characters[3]?.image || "assets/characters/payesh.png";
+
+        if (passed) {
+          this.dom.cardBadge.textContent = `LEVEL ${this.currentLevel} CLEARED!`;
+          this.dom.cardTitle.textContent = "STAGE COMPLETE!";
+          this.dom.cardSub.textContent = `Target ${this.levelSpec.targetScore} crushed with ${this.movesLeft} moves left.`;
+          this.dom.btnEndAction.textContent = this.currentLevel < this.crushCfg.totalLevels
+            ? `PLAY LEVEL ${this.currentLevel + 1}`
+            : "PLAY LEVEL 1 AGAIN";
+        } else {
+          this.dom.cardBadge.textContent = "0 MOVES LEFT • GAME OVER";
+          this.dom.cardTitle.textContent = `LEVEL ${this.currentLevel} FAILED`;
+          this.dom.cardSub.textContent = `Needed ${this.levelSpec.targetScore} pts, scored ${this.score} pts.`;
+          this.dom.btnEndAction.textContent = `RETRY LEVEL ${this.currentLevel}`;
+        }
+
+        this.dom.cardPath.textContent = `Photocard JPG: ${cardPath}`;
+        this.dom.endLevel.textContent = `${this.currentLevel}/${this.crushCfg.totalLevels}`;
+        this.dom.endScore.textContent = this.score;
+        this.dom.endTarget.textContent = this.levelSpec.targetScore;
+        this.dom.endCombo.textContent = `${this.maxCascade}x`;
+
+        this.dom.endOverlay.classList.remove("hidden");
+      }
+
+      _updateHud() {
+        const best = Math.max(this.score, this._loadBest());
+        const pct = Math.min(100, Math.round((this.score / this.levelSpec.targetScore) * 100));
+        this.dom.hudLevel.textContent = `${this.currentLevel} / ${this.crushCfg.totalLevels}`;
+        this.dom.hudMoves.textContent = this.movesLeft;
+        this.dom.hudScore.textContent = this.score;
+        this.dom.hudTarget.textContent = this.levelSpec.targetScore;
+        this.dom.hudBest.textContent = best;
+        this.dom.tierLabel.textContent = `${this.levelSpec.tier} • LVL ${this.currentLevel}`;
+        this.dom.progressFill.style.width = `${pct}%`;
+      }
+
+      _sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+    }
+
+    /**
+     * ============================================================================
      * BURROW DASH 3-LANE RACING CONTROLLER
-     * - Gradual, slow start that gets harder slowly over time (no fish speed spike)
-     * - Fish + Canned Chicken Cat Food (higher points)
-     * - 3 Lives with crash photocard (.jpg) showing remaining lives on every crash
      * ============================================================================
      */
     class BurrowDashController {
@@ -2793,7 +3965,6 @@
         this.dom.canvasWrap.classList.add("invulnerable");
         document.body.classList.add("racing-playing");
 
-        // Clear obstacles close to the player so resumption is fair
         const playerY = this.dom.canvas.height - 122;
         this.entities = this.entities.filter((ent) => ent.kind !== "obstacle" || ent.y < playerY - 220);
 
@@ -2856,7 +4027,6 @@
       _update(dt, dtMs) {
         this.runSeconds += dt;
 
-        // Gradual, slow speed ramp over time; eating fish/cat food does NOT spike speed
         this.currentSpeed = Math.min(
           this.raceCfg.maxSpeedPxPerSec,
           this.raceCfg.baseSpeedPxPerSec + this.runSeconds * this.raceCfg.speedRampPerSec
@@ -2875,10 +4045,8 @@
         this.playerX += (targetX - this.playerX) * Math.min(1, dt * 18);
         this.playerTilt += (0 - this.playerTilt) * Math.min(1, dt * 11);
 
-        // Gentle passive points
         this.score += this.currentSpeed * dt * 0.14;
 
-        // Spawn pacing starts relaxed and gets tighter slowly
         this.spawnTimerMs -= dtMs;
         if (this.spawnTimerMs <= 0) {
           this._spawnWave();
@@ -2974,7 +4142,6 @@
           nearMissed: false
         });
 
-        // Spawn either canned chicken cat food (higher points) or fish treat in an open lane
         const openLane = lanes.find((l) => l !== primaryLane);
         const roll = Math.random();
         if (roll < 0.62) {
@@ -2992,7 +4159,6 @@
           });
         }
 
-        // Only add a second obstacle once runSeconds > 25 so the start stays gentle
         if (this.runSeconds > 25 && Math.random() < 0.28) {
           const thirdLane = lanes.find((l) => l !== primaryLane && l !== openLane);
           if (thirdLane !== undefined) {
@@ -3270,13 +4436,11 @@
           ctx.arc(-9, -2, 2.2, 0, Math.PI * 2);
           ctx.fill();
         } else if (ent.kind === "catfood") {
-          // Canned Chicken Cat Food tin
           ctx.fillStyle = "rgba(255, 183, 77, 0.25)";
           ctx.beginPath();
           ctx.arc(0, 0, 28, 0, Math.PI * 2);
           ctx.fill();
 
-          // Can body
           ctx.fillStyle = "#c94a38";
           ctx.beginPath();
           ctx.roundRect(-18, -14, 36, 28, 6);
@@ -3285,13 +4449,11 @@
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Metallic rim & lid
           ctx.fillStyle = "#cfd8dc";
           ctx.beginPath();
           ctx.roundRect(-19, -17, 38, 6, 3);
           ctx.fill();
 
-          // Label text
           ctx.fillStyle = "#fff3d6";
           ctx.font = "900 8px " + getComputedStyle(document.documentElement).getPropertyValue("--font-mono");
           ctx.textAlign = "center";
@@ -3690,6 +4852,7 @@
         this.sound = new SoundEngine(config.audio);
         this.ttt = new CatTacToeController(config, this.sound, () => this.goHome());
         this.race = new BurrowDashController(config, this.sound, this, () => this.goHome());
+        this.crush = new CharacterCrushController(config, this.sound, this, () => this.goHome());
 
         this.isRunning = false;
         this.score = 0;
@@ -3852,7 +5015,9 @@
 
           card.querySelector("button").addEventListener("click", () => {
             this.sound.playSfx("button");
-            if (isPlayable && game.id === "burrow-dash") {
+            if (isPlayable && game.id === "character-crush") {
+              this.openCharacterCrush(1);
+            } else if (isPlayable && game.id === "burrow-dash") {
               this.openBurrowDash();
             } else if (isPlayable && game.id === "dont-hurt-the-cats") {
               this.openPrestartModal();
@@ -3867,54 +5032,40 @@
         });
       }
 
-      goHome() {
+      _stopAllForModeSwitch() {
         this.isRunning = false;
         this._clearAllTimers();
         this._resetAllHoles();
         this.sound.stopMusic();
         this.ttt.hideAll();
         this.race.hideAll();
-
+        this.crush.hideAll();
         document.body.classList.remove("game-playing", "racing-playing");
         this.dom.crosshair.classList.remove("active");
+        this.dom.homepageView.classList.add("hidden");
+        this.dom.gameStageView.classList.add("hidden");
         this.dom.prestartOverlay.classList.add("hidden");
         this.dom.gameoverOverlay.classList.add("hidden");
-        this.dom.gameStageView.classList.add("hidden");
+      }
+
+      goHome() {
+        this._stopAllForModeSwitch();
         this.dom.homepageView.classList.remove("hidden");
         this._updateHud();
       }
 
+      openCharacterCrush(levelNum = 1) {
+        this._stopAllForModeSwitch();
+        this.crush.startLevel(levelNum);
+      }
+
       openBurrowDash() {
-        this.isRunning = false;
-        this._clearAllTimers();
-        this._resetAllHoles();
-        this.sound.stopMusic();
-        this.ttt.hideAll();
-
-        document.body.classList.remove("game-playing");
-        this.dom.crosshair.classList.remove("active");
-        this.dom.homepageView.classList.add("hidden");
-        this.dom.gameStageView.classList.add("hidden");
-        this.dom.prestartOverlay.classList.add("hidden");
-        this.dom.gameoverOverlay.classList.add("hidden");
-
+        this._stopAllForModeSwitch();
         this.race.openCharacterSelector();
       }
 
       openCatTacToe() {
-        this.isRunning = false;
-        this._clearAllTimers();
-        this._resetAllHoles();
-        this.sound.stopMusic();
-        this.race.hideAll();
-
-        document.body.classList.remove("game-playing", "racing-playing");
-        this.dom.crosshair.classList.remove("active");
-        this.dom.homepageView.classList.add("hidden");
-        this.dom.gameStageView.classList.add("hidden");
-        this.dom.prestartOverlay.classList.add("hidden");
-        this.dom.gameoverOverlay.classList.add("hidden");
-
+        this._stopAllForModeSwitch();
         this.ttt.openModeSelector();
       }
 
@@ -3926,18 +5077,8 @@
       }
 
       openPrestartModal() {
-        this.isRunning = false;
-        this._clearAllTimers();
-        this._resetAllHoles();
-        this.sound.stopMusic();
-        this.ttt.hideAll();
-        this.race.hideAll();
-
-        document.body.classList.remove("game-playing", "racing-playing");
-        this.dom.crosshair.classList.remove("active");
-        this.dom.homepageView.classList.add("hidden");
+        this._stopAllForModeSwitch();
         this.dom.gameStageView.classList.remove("hidden");
-        this.dom.gameoverOverlay.classList.add("hidden");
         this.dom.prestartOverlay.classList.remove("hidden");
       }
 
@@ -4022,6 +5163,11 @@
           this.goHome();
         });
 
+        document.getElementById("btn-top-crush").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.openCharacterCrush(1);
+        });
+
         document.getElementById("btn-top-race").addEventListener("click", () => {
           this.sound.playSfx("button");
           this.openBurrowDash();
@@ -4035,6 +5181,11 @@
         document.getElementById("btn-top-games").addEventListener("click", () => {
           this.sound.playSfx("button");
           this.scrollToGamesSection();
+        });
+
+        document.getElementById("hero-start-crush-btn").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.openCharacterCrush(1);
         });
 
         document.getElementById("hero-start-race-btn").addEventListener("click", () => {
@@ -4106,10 +5257,7 @@
       }
 
       startRound() {
-        this._clearAllTimers();
-        this._resetAllHoles();
-        this.ttt.hideAll();
-        this.race.hideAll();
+        this._stopAllForModeSwitch();
 
         this.isRunning = true;
         this.score = 0;
@@ -4122,10 +5270,7 @@
         this.timeRemaining = this.config.gameplay.roundDurationSeconds;
         this.lastFeaturedChar = this.config.characters[0];
 
-        this.dom.homepageView.classList.add("hidden");
         this.dom.gameStageView.classList.remove("hidden");
-        this.dom.prestartOverlay.classList.add("hidden");
-        this.dom.gameoverOverlay.classList.add("hidden");
         document.body.classList.add("game-playing");
 
         this._updateHud();
