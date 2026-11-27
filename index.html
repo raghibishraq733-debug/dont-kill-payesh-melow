@@ -9,17 +9,17 @@
        THEME VARIABLES (Overridden by ARCADE_CONFIG.visuals)
        ========================================================================== */
     :root {
-      --bg-color: #16241b;
-      --bg-texture: #101b14;
-      --olive-surface: #253629;
-      --olive-border: #3a4f3f;
+      --bg-color: #152219;
+      --bg-texture: #0f1913;
+      --olive-surface: #223226;
+      --olive-border: #35493a;
       --hole-rim: #3b281c;
       --hole-depth: #140d09;
-      --charcoal: #121513;
+      --charcoal: #111512;
       --cream: #f2ece1;
-      --cream-muted: #a9a499;
+      --cream-muted: #a6a095;
       --accent: #d96b27;
-      --accent-hover: #f07b32;
+      --accent-hover: #ec7a34;
       --danger: #b82929;
       --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -37,6 +37,10 @@
       -webkit-touch-callout: none;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     html, body {
       width: 100%;
       min-height: 100%;
@@ -45,9 +49,8 @@
       font-family: var(--font-main);
       overflow-x: hidden;
       background-image:
-        radial-gradient(circle at 50% 15%, rgba(45, 71, 53, 0.36) 0%, rgba(16, 27, 20, 0.94) 100%),
-        repeating-radial-gradient(circle at 0 0, transparent 0, var(--bg-texture) 12px),
-        repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 2px, transparent 2px, transparent 6px);
+        radial-gradient(circle at 50% 10%, rgba(56, 86, 65, 0.28) 0%, rgba(15, 25, 19, 0.96) 72%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 2px, transparent 2px, transparent 8px);
     }
 
     body.game-playing {
@@ -116,16 +119,18 @@
     }
 
     /* ==========================================================================
-       TOP NAVIGATION BAR
+       MINIMAL TOP NAVIGATION BAR
        ========================================================================== */
     #topbar {
+      position: sticky;
+      top: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 13px 22px;
-      background: rgba(18, 21, 19, 0.82);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(242, 236, 225, 0.08);
+      padding: 14px 24px;
+      background: rgba(17, 21, 18, 0.78);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(242, 236, 225, 0.07);
       z-index: 200;
       gap: 12px;
       flex-wrap: wrap;
@@ -140,18 +145,17 @@
       color: var(--cream);
       font-family: var(--font-mono);
       font-weight: 800;
-      font-size: 0.95rem;
-      letter-spacing: 0.1em;
+      font-size: 0.92rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       cursor: pointer;
     }
 
     .brand-dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: var(--accent);
-      box-shadow: 0 0 10px var(--accent);
     }
 
     .top-actions {
@@ -162,11 +166,11 @@
     }
 
     .pill-btn {
-      background: var(--olive-surface);
+      background: rgba(34, 50, 38, 0.85);
       border: 1px solid var(--olive-border);
       color: var(--cream);
-      padding: 7px 12px;
-      border-radius: 6px;
+      padding: 7px 13px;
+      border-radius: 7px;
       font-size: 0.74rem;
       font-weight: 700;
       letter-spacing: 0.06em;
@@ -176,7 +180,7 @@
     }
 
     .pill-btn:hover {
-      background: #314736;
+      background: #2e4434;
       border-color: var(--cream-muted);
     }
 
@@ -196,78 +200,71 @@
     }
 
     /* ==========================================================================
-       HOMEPAGE VIEW
+       CLEAN & MINIMAL AESTHETIC HOMEPAGE
        ========================================================================== */
     #homepage-view {
       width: 100%;
-      max-width: 1060px;
+      max-width: 980px;
       margin: 0 auto;
-      padding: 28px 20px 64px;
+      padding: 44px 20px 76px;
       display: flex;
       flex-direction: column;
-      gap: 38px;
+      gap: 52px;
     }
 
     #homepage-view.hidden {
       display: none;
     }
 
-    .hero-box {
-      background: rgba(37, 54, 41, 0.72);
-      border: 1px solid var(--olive-border);
-      border-radius: 16px;
-      padding: clamp(22px, 4vw, 34px);
+    .hero-minimal {
+      padding: 12px 4px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.42);
+      gap: 16px;
     }
 
-    .hero-kicker {
+    .hero-tag {
       align-self: flex-start;
       font-family: var(--font-mono);
       font-size: 0.72rem;
       font-weight: 700;
-      text-transform: uppercase;
       letter-spacing: 0.14em;
+      text-transform: uppercase;
       color: var(--accent);
-      background: rgba(217, 107, 39, 0.14);
-      border: 1px solid rgba(217, 107, 39, 0.35);
-      padding: 5px 10px;
-      border-radius: 999px;
     }
 
     .hero-title {
-      font-size: clamp(2rem, 4.8vw, 3.1rem);
+      font-size: clamp(2.2rem, 5.4vw, 3.5rem);
       font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -0.025em;
+      line-height: 1.03;
+      letter-spacing: -0.03em;
+      color: var(--cream);
     }
 
-    .hero-copy {
-      max-width: 68ch;
+    .hero-subtitle {
+      max-width: 58ch;
+      font-size: 1.02rem;
+      line-height: 1.65;
       color: var(--cream-muted);
-      font-size: 0.98rem;
-      line-height: 1.6;
     }
 
-    .hero-cta-row {
+    .hero-actions {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
-      margin-top: 4px;
+      padding-top: 4px;
     }
 
     .btn-hero {
-      padding: 13px 22px;
-      font-size: 0.9rem;
+      padding: 13px 24px;
+      font-size: 0.88rem;
       font-weight: 800;
       letter-spacing: 0.09em;
       text-transform: uppercase;
       border-radius: 8px;
       border: none;
       cursor: pointer;
-      transition: transform 0.12s, background 0.15s;
+      transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
     }
 
     .btn-hero.main {
@@ -277,215 +274,247 @@
 
     .btn-hero.main:hover {
       background: var(--accent-hover);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
 
-    .btn-hero.ghost {
-      background: rgba(18, 21, 19, 0.6);
+    .btn-hero.outline {
+      background: transparent;
       color: var(--cream);
       border: 1px solid var(--olive-border);
     }
 
-    .btn-hero.ghost:hover {
-      border-color: var(--cream-muted);
+    .btn-hero.outline:hover {
+      border-color: var(--cream);
+      background: rgba(242, 236, 225, 0.04);
     }
 
-    .section-head {
+    .section-header {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: flex-end;
       gap: 12px;
-      margin-bottom: 14px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(242, 236, 225, 0.08);
       flex-wrap: wrap;
     }
 
     .section-title {
-      font-size: 1.28rem;
+      font-size: 1.2rem;
       font-weight: 800;
+      letter-spacing: -0.01em;
     }
 
-    .section-sub {
-      font-size: 0.85rem;
+    .section-note {
+      font-size: 0.84rem;
       color: var(--cream-muted);
     }
 
-    /* Interactive 5-Character Cast Board */
-    .cast-board {
-      background: rgba(18, 21, 19, 0.56);
-      border: 1px solid rgba(242, 236, 225, 0.1);
-      border-radius: 16px;
-      padding: 20px;
-    }
-
-    .cast-grid {
+    /* Interactive 5-Character Cast Row */
+    .cast-strip {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-      gap: 14px;
-      margin-bottom: 14px;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 12px;
     }
 
-    .cast-card {
-      background: rgba(37, 54, 41, 0.65);
-      border: 1px solid var(--olive-border);
+    .cast-tile {
+      background: rgba(34, 50, 38, 0.58);
+      border: 1px solid rgba(242, 236, 225, 0.09);
       border-radius: 12px;
-      padding: 14px 10px;
+      padding: 16px 10px 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       gap: 8px;
       cursor: pointer;
-      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s;
+      transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s ease, background 0.15s ease;
     }
 
-    .cast-card:hover {
-      transform: translateY(-4px);
+    .cast-tile:hover {
+      transform: translateY(-3px);
       border-color: var(--accent);
+      background: rgba(34, 50, 38, 0.88);
     }
 
-    .cast-card:active {
-      transform: scale(0.95);
+    .cast-tile:active {
+      transform: scale(0.94);
     }
 
-    .cast-card.cat-card {
-      border-color: rgba(217, 107, 39, 0.55);
+    .cast-tile.cat-tile {
+      border-color: rgba(217, 107, 39, 0.35);
     }
 
-    .cast-sprite-wrap {
-      width: 78px;
-      height: 78px;
+    .cast-avatar {
+      width: 72px;
+      height: 72px;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
     }
 
-    .cast-sprite-wrap img {
+    .cast-avatar img {
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
-      filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.5));
+      filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.45));
     }
 
     .cast-fallback {
       display: none;
-      width: 68px;
-      height: 68px;
+      width: 64px;
+      height: 64px;
       border-radius: 10px;
-      border: 2px dashed var(--accent);
-      background: rgba(18, 21, 19, 0.65);
+      border: 1.5px dashed var(--accent);
+      background: rgba(17, 21, 18, 0.6);
       font-family: var(--font-mono);
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 700;
       align-items: center;
       justify-content: center;
     }
 
-    .cast-card.img-error img { display: none; }
-    .cast-card.img-error .cast-fallback { display: flex; }
+    .cast-tile.img-error img { display: none; }
+    .cast-tile.img-error .cast-fallback { display: flex; }
 
     .cast-name {
+      font-size: 0.92rem;
       font-weight: 800;
-      font-size: 0.96rem;
     }
 
-    .cast-role {
+    .cast-tag {
       font-family: var(--font-mono);
-      font-size: 0.66rem;
-      text-transform: uppercase;
+      font-size: 0.62rem;
       letter-spacing: 0.1em;
-      padding: 3px 7px;
-      border-radius: 4px;
-      background: rgba(18, 21, 19, 0.55);
+      text-transform: uppercase;
       color: var(--cream-muted);
     }
 
-    .cast-card.cat-card .cast-role {
+    .cast-tile.cat-tile .cast-tag {
       color: var(--accent);
-      background: rgba(217, 107, 39, 0.16);
     }
 
-    .cast-pokes {
+    .cast-hits {
       font-family: var(--font-mono);
       font-size: 0.72rem;
       color: var(--cream);
+      opacity: 0.88;
     }
 
-    .cast-banner {
-      background: rgba(37, 54, 41, 0.55);
-      border-left: 3px solid var(--accent);
-      border-radius: 8px;
-      padding: 12px 14px;
-      font-size: 0.88rem;
-      color: var(--cream);
+    .cast-status-bar {
+      margin-top: 12px;
+      padding: 11px 14px;
+      border-radius: 9px;
+      background: rgba(17, 21, 18, 0.52);
+      border: 1px solid rgba(242, 236, 225, 0.07);
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      font-size: 0.86rem;
       flex-wrap: wrap;
     }
 
-    /* Separate Games Section */
-    #games-section {
-      background: rgba(18, 21, 19, 0.45);
+    /* Fast Blitz Mini-Warmup Card */
+    .blitz-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: rgba(34, 50, 38, 0.45);
       border: 1px solid rgba(242, 236, 225, 0.08);
-      border-radius: 16px;
-      padding: 22px;
+      flex-wrap: wrap;
+    }
+
+    .blitz-info h3 {
+      font-size: 0.98rem;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .blitz-info p {
+      font-size: 0.84rem;
+      color: var(--cream-muted);
+    }
+
+    .blitz-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .blitz-score {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--accent);
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: rgba(17, 21, 18, 0.6);
+    }
+
+    /* Games Section */
+    #games-section {
+      scroll-margin-top: 76px;
     }
 
     .games-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 16px;
     }
 
     .game-card {
-      background: rgba(37, 54, 41, 0.72);
-      border: 1px solid var(--olive-border);
+      background: rgba(34, 50, 38, 0.65);
+      border: 1px solid rgba(242, 236, 225, 0.1);
       border-radius: 12px;
-      padding: 18px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 14px;
-      transition: transform 0.15s, border-color 0.15s;
+      gap: 16px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
     }
 
     .game-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-2px);
       border-color: var(--accent);
     }
 
     .game-card.locked {
-      opacity: 0.82;
+      opacity: 0.78;
       border-style: dashed;
     }
 
-    .game-card-top {
+    .game-card-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
     }
 
-    .badge-status {
+    .status-pill {
       font-family: var(--font-mono);
-      font-size: 0.66rem;
+      font-size: 0.64rem;
       font-weight: 800;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       padding: 3px 8px;
       border-radius: 4px;
-      background: rgba(217, 107, 39, 0.2);
+      background: rgba(217, 107, 39, 0.18);
       color: var(--accent);
     }
 
-    .badge-status.soon {
-      background: rgba(242, 236, 225, 0.08);
+    .status-pill.soon {
+      background: rgba(242, 236, 225, 0.07);
       color: var(--cream-muted);
     }
 
     .game-card-title {
-      font-size: 1.12rem;
+      font-size: 1.1rem;
       font-weight: 800;
       margin-bottom: 6px;
     }
@@ -500,56 +529,8 @@
       font-family: var(--font-mono);
       font-size: 0.72rem;
       color: var(--cream);
-      background: rgba(18, 21, 19, 0.45);
-      padding: 7px 10px;
-      border-radius: 6px;
+      opacity: 0.85;
       margin-bottom: 10px;
-    }
-
-    /* Funny Extras Strip */
-    .extras-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
-    }
-
-    .extra-card {
-      background: rgba(37, 54, 41, 0.58);
-      border: 1px solid var(--olive-border);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .extra-card h3 {
-      font-size: 0.96rem;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .extra-card p {
-      font-size: 0.84rem;
-      color: var(--cream-muted);
-      line-height: 1.5;
-    }
-
-    .panic-bar-wrap {
-      width: 100%;
-      height: 10px;
-      background: rgba(18, 21, 19, 0.7);
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 8px;
-    }
-
-    .panic-bar-fill {
-      height: 100%;
-      width: 35%;
-      background: var(--accent);
-      transition: width 0.25s ease;
     }
 
     /* ==========================================================================
@@ -561,7 +542,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: calc(100vh - 56px);
+      min-height: calc(100vh - 58px);
     }
 
     #game-stage-view.hidden {
@@ -573,7 +554,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 22px;
-      background: linear-gradient(180deg, rgba(18, 21, 19, 0.85) 0%, rgba(18, 21, 19, 0) 100%);
+      background: linear-gradient(180deg, rgba(17, 21, 18, 0.85) 0%, rgba(17, 21, 18, 0) 100%);
       z-index: 50;
       gap: 12px;
       flex-wrap: wrap;
@@ -634,7 +615,7 @@
     #difficulty-pill {
       padding: 4px 10px;
       border-radius: 999px;
-      background: rgba(37, 54, 41, 0.85);
+      background: rgba(34, 50, 38, 0.85);
       border: 1px solid var(--olive-border);
       font-size: 0.7rem;
       font-weight: 700;
@@ -895,7 +876,7 @@
     }
 
     .rules-card {
-      background: rgba(18, 21, 19, 0.55);
+      background: rgba(17, 21, 18, 0.55);
       border: 1px solid rgba(242, 236, 225, 0.08);
       border-radius: 10px;
       padding: 12px 14px;
@@ -913,7 +894,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      background: rgba(18, 21, 19, 0.45);
+      background: rgba(17, 21, 18, 0.45);
       padding: 12px 14px;
       border-radius: 10px;
       margin-bottom: 18px;
@@ -939,7 +920,6 @@
       cursor: pointer;
     }
 
-    /* Picture Card with Score & Stats Written Directly on It */
     .end-picture-card {
       position: relative;
       width: 100%;
@@ -1024,7 +1004,7 @@
     .btn-primary {
       width: 100%;
       padding: 13px 20px;
-      font-size: 0.98rem;
+      font-size: 0.96rem;
       font-weight: 800;
       letter-spacing: 0.11em;
       text-transform: uppercase;
@@ -1054,7 +1034,16 @@
 
     .btn-secondary:hover { background: rgba(242, 236, 225, 0.08); }
 
+    @media (max-width: 820px) {
+      .cast-strip {
+        grid-template-columns: repeat(3, minmax(110px, 1fr));
+      }
+    }
+
     @media (max-width: 600px) {
+      .cast-strip {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+      }
       .end-pic-stats-written {
         max-width: 100%;
         padding-right: 96px;
@@ -1093,96 +1082,69 @@
       </button>
 
       <div class="top-actions">
-        <button type="button" class="pill-btn primary" id="btn-top-play">Don't Hurt The Cats</button>
-        <button type="button" class="pill-btn" id="btn-top-games">Games</button>
+        <button type="button" class="pill-btn primary" id="btn-top-play">Play Now</button>
+        <button type="button" class="pill-btn" id="btn-top-games">Games Section</button>
         <button type="button" class="pill-btn" id="btn-toggle-music">Music: ON</button>
         <button type="button" class="pill-btn" id="btn-toggle-sfx">SFX: ON</button>
       </div>
     </header>
 
     <!-- ======================================================================
-         HOMEPAGE VIEW
+         CLEAN, MINIMAL & AESTHETIC HOMEPAGE
          ====================================================================== -->
     <main id="homepage-view">
-      <section class="hero-box">
-        <span class="hero-kicker">60-Second Arcade • Speed Ramps After 20s</span>
+      <section class="hero-minimal">
+        <span class="hero-tag">60s Arcade • Speed Ramps After 20s</span>
         <h1 class="hero-title">DON'T HURT THE CATS.</h1>
-        <p class="hero-copy">
-          Shoot Ragib, Tanha, and Neha for points before the 60-second clock runs out. After 20 seconds, the burrows speed up gradually until your reflexes are tested to the limit—and if you touch Payesh or Melow, it's instant game over.
+        <p class="hero-subtitle">
+          Fast reflex shooting across six burrows. Hit Ragib, Tanha, and Neha for points—never shoot Payesh or Melow.
         </p>
-        <div class="hero-cta-row">
-          <button type="button" class="btn-hero main" id="hero-start-btn">Play 60s Round</button>
-          <button type="button" class="btn-hero ghost" id="hero-browse-btn">Browse Games</button>
+        <div class="hero-actions">
+          <button type="button" class="btn-hero main" id="hero-start-btn">Start 60s Game</button>
+          <button type="button" class="btn-hero outline" id="hero-go-games-btn">Go to Games Section</button>
         </div>
       </section>
 
-      <!-- Interactive Cast of All 5 Characters -->
-      <section class="cast-board">
-        <div class="section-head">
+      <!-- All 5 Characters Interactive Cast -->
+      <section>
+        <div class="section-header">
           <div>
-            <h2 class="section-title">Interactive Cast (Click Any Character)</h2>
-            <p class="section-sub">Poke Ragib, Tanha, and Neha—or pet Payesh and Melow to earn their mercy.</p>
+            <h2 class="section-title">The Five</h2>
+            <p class="section-note">Tap or click any character for instant reactions.</p>
           </div>
-          <span class="pill-btn" id="total-pokes-badge">0 Total Pokes</span>
+          <span class="pill-btn" id="total-pokes-badge">0 Taps</span>
         </div>
 
-        <div class="cast-grid" id="cast-grid"></div>
+        <div class="cast-strip" id="cast-grid"></div>
 
-        <div class="cast-banner">
-          <span id="cast-reaction-text">Click any of the 5 characters above to see what they say.</span>
-          <button type="button" class="pill-btn" id="btn-cast-chaos">Poke Everyone</button>
+        <div class="cast-status-bar">
+          <span id="cast-reaction-text">Ragib, Tanha, and Neha give points; Payesh and Melow end the run.</span>
+          <button type="button" class="pill-btn" id="btn-cast-chaos">Tap All 5</button>
         </div>
       </section>
 
-      <!-- Separate Games Section -->
+      <!-- Fast Reflex Warmup Bar -->
+      <section class="blitz-bar">
+        <div class="blitz-info">
+          <h3>5-Second Reflex Warmup</h3>
+          <p id="blitz-status">Hit the highlighted target character before it hops away.</p>
+        </div>
+        <div class="blitz-controls">
+          <span class="blitz-score" id="blitz-score">STREAK: 0</span>
+          <button type="button" class="pill-btn primary" id="btn-blitz-target">Quick Hit (+1)</button>
+        </div>
+      </section>
+
+      <!-- Dedicated Games Section -->
       <section id="games-section">
-        <div class="section-head">
+        <div class="section-header">
           <div>
             <h2 class="section-title">Games</h2>
-            <p class="section-sub">Playable now and extra game slots ready to plug into <code>ARCADE_CONFIG.games</code>.</p>
+            <p class="section-note">Playable games now, plus slots ready when you add more games in <code>ARCADE_CONFIG.games</code>.</p>
           </div>
           <span class="pill-btn" id="games-count-badge">1 Live</span>
         </div>
         <div class="games-grid" id="games-grid"></div>
-      </section>
-
-      <!-- Funny & Cool Features -->
-      <section>
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">Arcade Labs &amp; Nonsense</h2>
-            <p class="section-sub">Fun tools before you drop into the burrows.</p>
-          </div>
-        </div>
-
-        <div class="extras-grid">
-          <div class="extra-card">
-            <div>
-              <h3>Cat Panic Meter</h3>
-              <p id="panic-label">Chill (35%): Cats are snoozing near the burrows.</p>
-              <div class="panic-bar-wrap">
-                <div class="panic-bar-fill" id="panic-bar"></div>
-              </div>
-            </div>
-            <button type="button" class="pill-btn" id="btn-bump-panic">Shake Panic Meter</button>
-          </div>
-
-          <div class="extra-card">
-            <div>
-              <h3>Instant Excuse Generator</h3>
-              <p id="excuse-text">"The cat jumped right into my bullet—total setup."</p>
-            </div>
-            <button type="button" class="pill-btn" id="btn-new-excuse">New Excuse</button>
-          </div>
-
-          <div class="extra-card">
-            <div>
-              <h3>Soundboard Tester</h3>
-              <p>Test your gunshot, hit chime, and warning tones right here.</p>
-            </div>
-            <button type="button" class="pill-btn" id="btn-soundboard-test">Test Gun &amp; Hit</button>
-          </div>
-        </div>
       </section>
     </main>
 
@@ -1285,30 +1247,30 @@
     const ARCADE_CONFIG = {
       hubTitle: "BURROW ARCADE",
 
-      // Add new games here as you build them!
+      // Add new games here as you create them!
       games: [
         {
           id: "dont-hurt-the-cats",
           title: "DON'T HURT THE CATS.",
-          tag: "LIVE ARCADE",
+          tag: "FLAGSHIP",
           status: "playable",
-          description: "60-second reflex shooter with gradual speed acceleration after 20 seconds. Hit Ragib, Tanha, and Neha; spare Payesh and Melow.",
-          meta: "60S TIMER • 6 BURROWS • 5 CHARACTERS"
+          description: "60-second burrow shooter with gradual post-20s speed acceleration. Shoot Ragib, Tanha, and Neha; protect Payesh and Melow.",
+          meta: "60S • 6 HOLES • 5 CHARACTERS"
         },
         {
           id: "slot-game-2",
-          title: "NEW GAME SLOT #2",
-          tag: "UPCOMING",
+          title: "FUTURE GAME #2",
+          tag: "OPEN SLOT",
           status: "coming-soon",
-          description: "Reserved for your next browser game. Add its details in ARCADE_CONFIG.games whenever ready.",
+          description: "Ready for your next browser game. Add its config entry here whenever you upload it.",
           meta: "CUSTOMIZABLE SLOT"
         },
         {
           id: "slot-game-3",
-          title: "NEW GAME SLOT #3",
-          tag: "UPCOMING",
+          title: "FUTURE GAME #3",
+          tag: "OPEN SLOT",
           status: "coming-soon",
-          description: "Another open spot in your arcade lobby for future experiments or mini-games.",
+          description: "Reserved arcade slot for another mini-game or high-score mode.",
           meta: "CUSTOMIZABLE SLOT"
         }
       ],
@@ -1324,7 +1286,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Ragib dodged left—good thing you're just poking in the lobby!"
+          pokeLine: "Ragib: Fast hands only—speed climbs after 20 seconds!"
         },
         {
           id: "tanha",
@@ -1336,7 +1298,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Tanha spotted your cursor. Watch out once the 20s speed boost hits!"
+          pokeLine: "Tanha: Keep your streak alive and don't blink late in the round."
         },
         {
           id: "neha",
@@ -1348,7 +1310,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Neha gives you a +10 style nod. Ready for a 60-second sprint?"
+          pokeLine: "Neha: Clean shots build combos—empty clicks reset your streak."
         },
         {
           id: "payesh",
@@ -1360,7 +1322,7 @@
           offsetY: 0,
           frequency: 0.9,
           appearSound: "catWarning",
-          pokeLine: "Payesh purrs softly. Shooting this white cat ends the run immediately."
+          pokeLine: "Payesh (White Cat): Protected! Touching Payesh ends the game instantly."
         },
         {
           id: "melow",
@@ -1372,7 +1334,7 @@
           offsetY: 0,
           frequency: 0.9,
           appearSound: "catWarning",
-          pokeLine: "Melow blinks slowly. Do NOT click Melow when the burrows go crazy."
+          pokeLine: "Melow (Orange Cat): Protected! Hold your fire when Melow pops up."
         }
       ],
 
@@ -1394,7 +1356,7 @@
       gameplay: {
         holeCount: 6,
         roundDurationSeconds: 60,
-        rampStartAfterSeconds: 20, // Speed starts gradually increasing after 20s elapsed
+        rampStartAfterSeconds: 20,
         basePoints: 10,
         comboTiers: [
           { hits: 1, multiplier: 1 },
@@ -1403,7 +1365,6 @@
           { hits: 5, multiplier: 5 },
           { hits: 8, multiplier: 8 }
         ],
-        // Pacing during first 20s vs peak speed at end of 60s
         pacing: {
           startVisibilityMs: 650,
           endVisibilityMs: 150,
@@ -1417,7 +1378,7 @@
       },
 
       visuals: {
-        backgroundColor: "#16241b",
+        backgroundColor: "#152219",
         holeRimColor: "#3b281c",
         accentColor: "#d96b27",
         fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -1668,7 +1629,6 @@
         this.config = config;
         this.sound = new SoundEngine(config.audio);
 
-        // Round & progression state
         this.isRunning = false;
         this.score = 0;
         this.shotsFired = 0;
@@ -1680,12 +1640,11 @@
         this.elapsedSeconds = 0;
         this.lastFeaturedChar = config.characters[0];
 
-        // Homepage fun state
         this.pokeCounts = {};
         this.totalPokes = 0;
-        this.panicLevel = 35;
+        this.blitzStreak = 0;
+        this.blitzExpectedChar = config.characters[0];
 
-        // Timers & holes
         this.spawnLoopTimer = null;
         this.roundTimerInterval = null;
         this.holes = [];
@@ -1700,11 +1659,11 @@
           castGrid: document.getElementById("cast-grid"),
           totalPokesBadge: document.getElementById("total-pokes-badge"),
           castReactionText: document.getElementById("cast-reaction-text"),
+          blitzStatus: document.getElementById("blitz-status"),
+          blitzScore: document.getElementById("blitz-score"),
+          btnBlitzTarget: document.getElementById("btn-blitz-target"),
           gamesGrid: document.getElementById("games-grid"),
           gamesCountBadge: document.getElementById("games-count-badge"),
-          panicBar: document.getElementById("panic-bar"),
-          panicLabel: document.getElementById("panic-label"),
-          excuseText: document.getElementById("excuse-text"),
           wrapper: document.getElementById("app-wrapper"),
           flash: document.getElementById("screen-flash"),
           crosshair: document.getElementById("crosshair"),
@@ -1728,6 +1687,7 @@
 
         this._applyVisuals();
         this._renderCastBoard();
+        this._setupBlitzWarmup();
         this._renderGamesSection();
         this._buildRabbitHoles();
         this._bindEvents();
@@ -1748,40 +1708,59 @@
       }
 
       /* ------------------------------------------------------------------------
-         HOMEPAGE: ALL 5 CHARACTERS INTERACTIVE BOARD & SEPARATE GAMES SECTION
+         HOMEPAGE: ALL 5 CHARACTERS + FAST WARMUP + GAMES SECTION
          ------------------------------------------------------------------------ */
       _renderCastBoard() {
         this.dom.castGrid.innerHTML = "";
         this.config.characters.forEach((char) => {
           this.pokeCounts[char.id] = 0;
 
-          const card = document.createElement("button");
-          card.type = "button";
-          card.className = `cast-card ${char.type === "cat" ? "cat-card" : ""}`;
-          card.innerHTML = `
-            <div class="cast-sprite-wrap">
+          const tile = document.createElement("button");
+          tile.type = "button";
+          tile.className = `cast-tile ${char.type === "cat" ? "cat-tile" : ""}`;
+          tile.innerHTML = `
+            <div class="cast-avatar">
               <img src="${char.image}" alt="${char.name}" />
               <span class="cast-fallback">${char.name.toUpperCase()}</span>
             </div>
             <div class="cast-name">${char.name}</div>
-            <span class="cast-role">${char.type === "cat" ? "PROTECTED CAT" : "TARGET (+10)"}</span>
-            <span class="cast-pokes" id="poke-count-${char.id}">0 pokes</span>
+            <span class="cast-tag">${char.type === "cat" ? "CAT • SAFE" : "TARGET • +10"}</span>
+            <span class="cast-hits" id="poke-count-${char.id}">0 taps</span>
           `;
 
-          const img = card.querySelector("img");
-          img.addEventListener("error", () => card.classList.add("img-error"));
-          img.addEventListener("load", () => card.classList.remove("img-error"));
+          const img = tile.querySelector("img");
+          img.addEventListener("error", () => tile.classList.add("img-error"));
+          img.addEventListener("load", () => tile.classList.remove("img-error"));
 
-          card.addEventListener("click", () => {
+          tile.addEventListener("click", () => {
             this.pokeCounts[char.id]++;
             this.totalPokes++;
-            document.getElementById(`poke-count-${char.id}`).textContent = `${this.pokeCounts[char.id]} pokes`;
-            this.dom.totalPokesBadge.textContent = `${this.totalPokes} Total Pokes`;
+            document.getElementById(`poke-count-${char.id}`).textContent = `${this.pokeCounts[char.id]} taps`;
+            this.dom.totalPokesBadge.textContent = `${this.totalPokes} Taps`;
             this.dom.castReactionText.textContent = char.pokeLine;
             this.sound.playSfx(char.type === "cat" ? "catWarning" : "button");
           });
 
-          this.dom.castGrid.appendChild(card);
+          this.dom.castGrid.appendChild(tile);
+        });
+      }
+
+      _setupBlitzWarmup() {
+        const pickNextTarget = () => {
+          const humans = this.config.characters.filter((c) => c.type === "human");
+          this.blitzExpectedChar = humans[Math.floor(Math.random() * humans.length)];
+          this.dom.blitzStatus.textContent = `Tap "${this.blitzExpectedChar.name}" in the cast above or click Quick Hit.`;
+          this.dom.btnBlitzTarget.textContent = `Hit ${this.blitzExpectedChar.name}`;
+        };
+
+        pickNextTarget();
+
+        this.dom.btnBlitzTarget.addEventListener("click", () => {
+          this.blitzStreak++;
+          this.dom.blitzScore.textContent = `STREAK: ${this.blitzStreak}`;
+          this.sound.playSfx("hit");
+          this.dom.blitzStatus.textContent = `Snappy hit on ${this.blitzExpectedChar.name}! Next reflex target locked.`;
+          pickNextTarget();
         });
       }
 
@@ -1797,9 +1776,9 @@
           card.className = `game-card ${isPlayable ? "" : "locked"}`;
           card.innerHTML = `
             <div>
-              <div class="game-card-top">
+              <div class="game-card-head">
                 <span class="stat-label">${game.tag || "GAME"}</span>
-                <span class="badge-status ${isPlayable ? "" : "soon"}">${isPlayable ? "PLAYABLE" : "COMING SOON"}</span>
+                <span class="status-pill ${isPlayable ? "" : "soon"}">${isPlayable ? "PLAYABLE" : "SOON"}</span>
               </div>
               <h3 class="game-card-title">${game.title}</h3>
               <p class="game-card-desc">${game.description}</p>
@@ -1807,7 +1786,7 @@
             <div>
               <div class="game-card-meta">${game.meta || ""}</div>
               <button type="button" class="${isPlayable ? "btn-primary" : "btn-secondary"}">
-                ${isPlayable ? "PLAY NOW" : "SLOT RESERVED"}
+                ${isPlayable ? "PLAY GAME" : "SLOT RESERVED"}
               </button>
             </div>
           `;
@@ -1817,7 +1796,7 @@
             if (isPlayable && game.id === "dont-hurt-the-cats") {
               this.openPrestartModal();
             } else {
-              this.dom.excuseText.textContent = `"${game.title} is an open slot—add your game code whenever you're ready!"`;
+              this.dom.castReactionText.textContent = `${game.title} is ready to be wired up in ARCADE_CONFIG.games.`;
             }
           });
 
@@ -1826,7 +1805,7 @@
       }
 
       /* ------------------------------------------------------------------------
-         NAVIGATION & MODAL CONTROLS
+         NAVIGATION & MODALS
          ------------------------------------------------------------------------ */
       goHome() {
         this.isRunning = false;
@@ -1841,6 +1820,13 @@
         this.dom.gameStageView.classList.add("hidden");
         this.dom.homepageView.classList.remove("hidden");
         this._updateHud();
+      }
+
+      scrollToGamesSection() {
+        this.goHome();
+        setTimeout(() => {
+          document.getElementById("games-section").scrollIntoView({ behavior: "smooth" });
+        }, 20);
       }
 
       openPrestartModal() {
@@ -1936,7 +1922,6 @@
           this._handleShot(e);
         });
 
-        // Header & hero buttons
         document.getElementById("btn-go-home").addEventListener("click", () => {
           this.sound.playSfx("button");
           this.goHome();
@@ -1949,8 +1934,7 @@
 
         document.getElementById("btn-top-games").addEventListener("click", () => {
           this.sound.playSfx("button");
-          this.goHome();
-          document.getElementById("games-section").scrollIntoView({ behavior: "smooth" });
+          this.scrollToGamesSection();
         });
 
         document.getElementById("hero-start-btn").addEventListener("click", () => {
@@ -1958,7 +1942,7 @@
           this.startRound();
         });
 
-        document.getElementById("hero-browse-btn").addEventListener("click", () => {
+        document.getElementById("hero-go-games-btn").addEventListener("click", () => {
           this.sound.playSfx("button");
           document.getElementById("games-section").scrollIntoView({ behavior: "smooth" });
         });
@@ -1966,40 +1950,10 @@
         document.getElementById("btn-cast-chaos").addEventListener("click", () => {
           this.sound.playSfx("button");
           this.totalPokes += 5;
-          this.dom.totalPokesBadge.textContent = `${this.totalPokes} Total Pokes`;
-          this.dom.castReactionText.textContent = "All 5 characters poked at once! Ragib, Tanha, Neha, Payesh, and Melow are officially warmed up.";
+          this.dom.totalPokesBadge.textContent = `${this.totalPokes} Taps`;
+          this.dom.castReactionText.textContent = "All 5 characters tapped: Ragib, Tanha, Neha, Payesh, and Melow are ready.";
         });
 
-        // Funny extras
-        const excuses = [
-          "\"The cat jumped right into my bullet—total setup.\"",
-          "\"Once the 20-second speed boost hit, my wrist entered another dimension.\"",
-          "\"I was aiming for +10 and accidentally clicked pure drama.\"",
-          "\"60 seconds wasn't enough time to negotiate with the cats.\""
-        ];
-        let excuseIdx = 0;
-        document.getElementById("btn-new-excuse").addEventListener("click", () => {
-          this.sound.playSfx("button");
-          excuseIdx = (excuseIdx + 1) % excuses.length;
-          this.dom.excuseText.textContent = excuses[excuseIdx];
-        });
-
-        document.getElementById("btn-bump-panic").addEventListener("click", () => {
-          this.sound.playSfx("catWarning");
-          this.panicLevel = this.panicLevel >= 95 ? 25 : this.panicLevel + 20;
-          this.dom.panicBar.style.width = `${this.panicLevel}%`;
-          this.dom.panicLabel.textContent =
-            this.panicLevel >= 80
-              ? `MAXIMUM FLUFF (${this.panicLevel}%): Keep your trigger finger disciplined!`
-              : `Elevated (${this.panicLevel}%): Cats are watching closely.`;
-        });
-
-        document.getElementById("btn-soundboard-test").addEventListener("click", () => {
-          this.sound.playSfx("gunshot");
-          setTimeout(() => this.sound.playSfx("hit"), 95);
-        });
-
-        // Pre-start & end modal buttons
         document.getElementById("btn-start-round").addEventListener("click", () => {
           this.sound.playSfx("button");
           this.startRound();
@@ -2025,7 +1979,6 @@
           this.goHome();
         });
 
-        // Audio controls
         const sliderMusic = document.getElementById("slider-music");
         const sliderSfx = document.getElementById("slider-sfx");
         const btnMusic = document.getElementById("btn-toggle-music");
@@ -2071,7 +2024,6 @@
         this._updateHud();
         this.sound.startMusic();
 
-        // 1-second countdown timer
         this.roundTimerInterval = setInterval(() => {
           if (!this.isRunning) return;
           this.elapsedSeconds++;
@@ -2086,7 +2038,6 @@
         this._scheduleNextSpawn(260);
       }
 
-      // Computes smooth post-20s acceleration factor (0.0 during first 20s -> 1.0 at 60s)
       _getRampProgress() {
         const rampStart = this.config.gameplay.rampStartAfterSeconds;
         const total = this.config.gameplay.roundDurationSeconds;
@@ -2308,7 +2259,6 @@
           this.dom.endPicSprite.alt = this.lastFeaturedChar.name;
         }
 
-        // Write score & stats directly onto the picture card
         this.dom.picScore.textContent = this.score;
         this.dom.picBest.textContent = records.bestScore;
         this.dom.picAcc.textContent = `${accuracy}%`;
