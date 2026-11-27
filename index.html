@@ -595,6 +595,7 @@
     .stat-value.accent { color: var(--accent); }
     .stat-value.urgent { color: #ef5350; }
     .stat-value.boost { color: #5ce1e6; }
+    .stat-value.food { color: #ffb74d; }
 
     #combo-badge {
       display: inline-flex;
@@ -1001,9 +1002,8 @@
       touch-action: none;
     }
 
-    .race-canvas-wrap.boosting {
-      border-color: #5ce1e6;
-      box-shadow: 0 0 28px rgba(92, 225, 230, 0.35), 0 22px 54px rgba(0, 0, 0, 0.65);
+    .race-canvas-wrap.invulnerable {
+      border-color: #ffd166;
     }
 
     #race-canvas {
@@ -1019,7 +1019,7 @@
       transform: translateX(-50%);
       padding: 6px 14px;
       border-radius: 999px;
-      background: rgba(17, 21, 18, 0.85);
+      background: rgba(17, 21, 18, 0.88);
       border: 1px solid var(--accent);
       font-family: var(--font-mono);
       font-size: 0.74rem;
@@ -1382,6 +1382,7 @@
     .rules-card strong { color: var(--cream); }
     .rules-card .warn { color: var(--accent); font-weight: 700; }
     .rules-card .boost-txt { color: #5ce1e6; font-weight: 700; }
+    .rules-card .food-txt { color: #ffb74d; font-weight: 700; }
 
     .audio-settings-box {
       display: flex;
@@ -1494,6 +1495,100 @@
       color: var(--accent);
     }
 
+    /* Crash Photocard Modal Styles */
+    .crash-card-frame {
+      position: relative;
+      width: 100%;
+      min-height: 225px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #ef5350;
+      background: radial-gradient(circle at 50% 30%, #461c18 0%, #140c0a 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      margin-bottom: 14px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    }
+
+    .crash-card-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    .crash-card-frame.img-error .crash-card-img {
+      display: none;
+    }
+
+    .crash-card-fallback {
+      display: none;
+      position: absolute;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 64px;
+      z-index: 1;
+    }
+
+    .crash-card-frame.img-error .crash-card-fallback {
+      display: flex;
+    }
+
+    .crash-card-fallback img {
+      width: 104px;
+      height: 104px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.75));
+    }
+
+    .crash-card-caption {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(14, 10, 9, 0.18) 0%, rgba(14, 10, 9, 0.94) 45%);
+      padding: 16px 14px 12px;
+      text-align: center;
+    }
+
+    .crash-lives-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(239, 83, 80, 0.22);
+      border: 1px solid #ef5350;
+      color: #ffd6d6;
+      margin-bottom: 6px;
+    }
+
+    .crash-card-title {
+      font-size: 1.32rem;
+      font-weight: 900;
+      color: var(--cream);
+    }
+
+    .crash-card-sub {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #ffb74d;
+      margin-top: 2px;
+    }
+
+    .crash-card-path {
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--cream-muted);
+      word-break: break-all;
+    }
+
     .btn-primary {
       width: 100%;
       padding: 13px 20px;
@@ -1592,7 +1687,7 @@
         <span class="hero-tag">Arcade Hub • 3-Lane Racing, Shooter &amp; Cat-Tac-Toe</span>
         <h1 class="hero-title">DON'T HURT THE CATS.</h1>
         <p class="hero-subtitle">
-          Race across three lanes as Payesh or Melow dodging Ragib, Tanha, Neha, burrow logs, and rocks while grabbing fish treats—or jump into the 60s shooter and Cat-Tac-Toe.
+          Race across three lanes as Payesh or Melow dodging Ragib, Tanha, Neha, burrow logs, and rocks while grabbing fish and canned chicken cat food—or jump into the 60s shooter and Cat-Tac-Toe.
         </p>
         <div class="hero-actions">
           <button type="button" class="btn-hero main" id="hero-start-race-btn">Play Burrow Dash</button>
@@ -1619,7 +1714,7 @@
         </div>
       </section>
 
-      <!-- Fast Reflex Warmup Bar -->
+      <!-- Fast Blitz Mini-Warmup Bar -->
       <section class="blitz-bar">
         <div class="blitz-info">
           <h3>5-Second Reflex Warmup</h3>
@@ -1758,6 +1853,10 @@
             <span class="stat-value accent" id="race-hud-racer">PAYESH</span>
           </div>
           <div class="stat-box">
+            <span class="stat-label">Lives</span>
+            <span class="stat-value urgent" id="race-hud-lives">♥♥♥</span>
+          </div>
+          <div class="stat-box">
             <span class="stat-label">Score</span>
             <span class="stat-value" id="race-hud-score">0</span>
           </div>
@@ -1766,12 +1865,12 @@
             <span class="stat-value" id="race-hud-best">0</span>
           </div>
           <div class="stat-box">
-            <span class="stat-label">Fish</span>
-            <span class="stat-value boost" id="race-hud-fish">0</span>
+            <span class="stat-label">Fish / Can</span>
+            <span class="stat-value boost" id="race-hud-treats">0 / 0</span>
           </div>
           <div class="stat-box">
             <span class="stat-label">Speed</span>
-            <span class="stat-value" id="race-hud-speed">1.0x</span>
+            <span class="stat-value" id="race-hud-speed">0.7x</span>
           </div>
         </div>
 
@@ -1783,7 +1882,7 @@
 
       <div class="race-shell">
         <div class="race-canvas-wrap" id="race-canvas-wrap">
-          <div class="race-banner-toast" id="race-toast">FISH BOOST! +150</div>
+          <div class="race-banner-toast" id="race-toast">CHICKEN CAT FOOD! +300</div>
           <canvas id="race-canvas" width="540" height="774"></canvas>
         </div>
 
@@ -1793,9 +1892,11 @@
         </div>
 
         <div class="race-controls-hint">
-          <span><strong>Steer:</strong> ← / → or A / D • Swipe or Tap Left/Right</span>
+          <span><strong>Steer:</strong> ← / → or A / D • Swipe or Tap</span>
           <span>•</span>
-          <span><strong>Fish Treats:</strong> Speed Boost + Bonus Pts</span>
+          <span><strong>Fish:</strong> Points • <strong>Chicken Can:</strong> Big Points</span>
+          <span>•</span>
+          <span><strong>3 Lives</strong></span>
         </div>
       </div>
     </section>
@@ -1833,7 +1934,7 @@
   <section id="race-select-overlay" class="overlay-screen hidden">
     <div class="panel">
       <h2 class="game-title">BURROW DASH</h2>
-      <p class="game-subtitle">Choose your cat to start the 3-lane run</p>
+      <p class="game-subtitle">3 lives • Slow easy start that gradually speeds up</p>
 
       <div class="racer-choice-grid">
         <button type="button" class="racer-choice-btn" id="btn-pick-payesh">
@@ -1843,7 +1944,7 @@
           </div>
           <span class="status-pill">WHITE CAT</span>
           <span class="mode-choice-title">Payesh</span>
-          <span class="mode-choice-sub">Nimble lane-hopper • Crisp boost handling.</span>
+          <span class="mode-choice-sub">Calm lane starter • Steady treat points.</span>
         </button>
 
         <button type="button" class="racer-choice-btn" id="btn-pick-melow">
@@ -1853,40 +1954,49 @@
           </div>
           <span class="status-pill">ORANGE CAT</span>
           <span class="mode-choice-title">Melow</span>
-          <span class="mode-choice-sub">Turbo chaser • Extra treat score surge.</span>
+          <span class="mode-choice-sub">Extra chicken cat food bonus points.</span>
         </button>
       </div>
 
       <div class="rules-card">
-        <div><strong>DODGE:</strong> Ragib, Tanha, Neha, Burrow Logs &amp; Rocks</div>
-        <div><span class="boost-txt">COLLECT FISH TREATS:</span> Speed boost + points + streak</div>
-        <div style="margin-top:4px;"><strong>CONTROLS:</strong> Left / Right Arrows, A / D, or Swipe / Tap on mobile.</div>
+        <div><strong>DODGE (3 LIVES):</strong> Ragib, Tanha, Neha, Burrow Logs &amp; Rocks</div>
+        <div><span class="boost-txt">FISH TREATS:</span> Points &amp; streak (no sudden speed spike)</div>
+        <div><span class="food-txt">CHICKEN CAT FOOD IN CAN:</span> High bonus points!</div>
+        <div style="margin-top:4px;"><strong>SPEED:</strong> Starts easy and slow, then gradually gets harder over time.</div>
       </div>
 
       <button type="button" class="btn-secondary" id="btn-race-select-home">BACK TO HOMEPAGE</button>
     </div>
   </section>
 
-  <!-- BURROW DASH CRASH / END MODAL -->
-  <section id="race-gameover-overlay" class="overlay-screen hidden">
+  <!-- BURROW DASH CRASH PHOTOCARD MODAL (EVERY CRASH) -->
+  <section id="race-crash-overlay" class="overlay-screen hidden">
     <div class="panel">
-      <div class="end-picture-card cat-death" id="race-end-card">
-        <img class="end-pic-bg-sprite" id="race-end-sprite" src="assets/characters/payesh.png" alt="Racer" />
+      <div class="crash-card-frame" id="race-crash-frame">
+        <img class="crash-card-img" id="race-crash-img" src="" alt="Crash Photocard" />
 
-        <div class="end-pic-overlay-top">
-          <div class="end-pic-heading" id="race-end-heading">WIPEOUT!</div>
-          <div class="end-pic-sub" id="race-end-sub">Hit Ragib in the middle lane!</div>
+        <div class="crash-card-fallback">
+          <img id="race-crash-sprite" src="assets/characters/payesh.png" alt="Racer" />
         </div>
 
-        <div class="end-pic-stats-written">
-          <div class="written-stat-line">SCORE: <span id="race-pic-score">0</span></div>
-          <div class="written-stat-line">BEST: <span id="race-pic-best">0</span></div>
-          <div class="written-stat-line">FISH: <span id="race-pic-fish">0</span></div>
-          <div class="written-stat-line">TOP SPEED: <span id="race-pic-speed">1.0x</span></div>
+        <div class="crash-card-caption">
+          <div class="crash-lives-badge" id="race-crash-lives-badge">2 LIVES LEFT</div>
+          <div class="crash-card-title" id="race-crash-heading">CRASHED INTO LOG!</div>
+          <div class="crash-card-sub" id="race-crash-sub">You have 2 chances remaining.</div>
+          <div class="crash-card-path" id="race-crash-path">Photocard: assets/photocards/race-crash-2-lives.jpg</div>
         </div>
       </div>
 
-      <button type="button" class="btn-primary" id="btn-race-retry">RACE AGAIN</button>
+      <div class="rules-card" style="margin-bottom:14px; padding:10px 12px;">
+        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.78rem;">
+          <span>SCORE: <strong id="race-crash-score">0</strong></span>
+          <span>BEST: <strong id="race-crash-best">0</strong></span>
+          <span>FISH: <strong id="race-crash-fish">0</strong></span>
+          <span>CANS: <strong id="race-crash-cans">0</strong></span>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="btn-race-crash-action">CONTINUE RUN</button>
       <button type="button" class="btn-secondary" id="btn-race-choose-again">SWITCH PAYESH / MELOW</button>
       <button type="button" class="btn-secondary" id="btn-race-over-home">HOMEPAGE</button>
     </div>
@@ -1967,14 +2077,11 @@
     /**
      * ============================================================================
      * CENTRALIZED ARCADE CONFIGURATION
-     * Customize characters, games list, Cat-Tac-Toe photocards, Burrow Dash,
-     * audio, and visuals.
      * ============================================================================
      */
     const ARCADE_CONFIG = {
       hubTitle: "BURROW ARCADE",
 
-      // Cat-Tac-Toe image & photocard paths
       ttt: {
         payeshImage: "assets/characters/payesh.png",
         melowImage: "assets/characters/melow.png",
@@ -1982,7 +2089,6 @@
         drawPhotocard: "assets/photocards/ttt-draw.png"
       },
 
-      // Burrow Dash 3-lane racing config
       racing: {
         racers: {
           payesh: {
@@ -1992,9 +2098,8 @@
             image: "assets/characters/payesh.png",
             color: "#f2ece1",
             accent: "#8be9fd",
-            boostMultiplier: 1.38,
-            boostDurationMs: 2400,
-            treatBonusPts: 150
+            fishPoints: 120,
+            catFoodPoints: 320
           },
           melow: {
             id: "melow",
@@ -2003,27 +2108,32 @@
             image: "assets/characters/melow.png",
             color: "#f59e42",
             accent: "#ff7b29",
-            boostMultiplier: 1.46,
-            boostDurationMs: 2500,
-            treatBonusPts: 200
+            fishPoints: 140,
+            catFoodPoints: 400
           }
         },
-        baseSpeedPxPerSec: 360,
-        maxSpeedPxPerSec: 980,
-        speedRampPerSec: 11.5,
-        spawnIntervalStartMs: 740,
-        spawnIntervalMinMs: 290
+        maxLives: 3,
+        // Gentle, easy start (0.7x relative to 360) that ramps up slowly over ~90s
+        baseSpeedPxPerSec: 250,
+        maxSpeedPxPerSec: 780,
+        speedRampPerSec: 5.8,
+        spawnIntervalStartMs: 1120,
+        spawnIntervalMinMs: 420,
+        crashPhotocards: {
+          2: "assets/photocards/race-crash-2-lives.jpg",
+          1: "assets/photocards/race-crash-1-life.jpg",
+          0: "assets/photocards/race-crash-0-lives.jpg"
+        }
       },
 
-      // Playable games & open slots
       games: [
         {
           id: "burrow-dash",
           title: "BURROW DASH",
-          tag: "NEW RACING",
+          tag: "3 LIVES • SLOW RAMP",
           status: "playable",
-          description: "Pick Payesh or Melow at start, weave across 3 lanes dodging Ragib, Tanha, Neha, burrow logs & rocks, and grab fish treats as track speed ramps up.",
-          meta: "3 LANES • FISH BOOSTS • SPEED RAMP"
+          description: "Start easy and slow across 3 lanes with 3 lives. Collect fish and canned chicken cat food for big points while dodging Ragib, Tanha, Neha, logs & rocks.",
+          meta: "3 LIVES • CHICKEN CAN • GRADUAL SPEED"
         },
         {
           id: "dont-hurt-the-cats",
@@ -2062,7 +2172,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Ragib: Watch the lanes in Burrow Dash—don't clip Ragib at high speed!"
+          pokeLine: "Ragib: Watch the lanes in Burrow Dash—you have 3 lives, so don't waste them!"
         },
         {
           id: "tanha",
@@ -2074,7 +2184,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Tanha: Chain fish treats for big streak multipliers before the track speeds up."
+          pokeLine: "Tanha: Canned chicken cat food gives way more points than regular fish!"
         },
         {
           id: "neha",
@@ -2086,7 +2196,7 @@
           offsetY: 0,
           frequency: 1.0,
           appearSound: "appear",
-          pokeLine: "Neha: Sharp lane switches beat last-second panic when logs and rocks pack up."
+          pokeLine: "Neha: The track starts calm and slow—take your time lining up treats."
         },
         {
           id: "payesh",
@@ -2098,7 +2208,7 @@
           offsetY: 0,
           frequency: 0.9,
           appearSound: "catWarning",
-          pokeLine: "Payesh (White Cat): Ready to sprint across 3 lanes—and protected in Shooter!"
+          pokeLine: "Payesh (White Cat): Ready to race with 3 lives—and protected in Shooter!"
         },
         {
           id: "melow",
@@ -2110,7 +2220,7 @@
           offsetY: 0,
           frequency: 0.9,
           appearSound: "catWarning",
-          pokeLine: "Melow (Orange Cat): Turbo fish-treat chaser in Burrow Dash—never shoot Melow!"
+          pokeLine: "Melow (Orange Cat): Loves canned chicken cat food for extra points!"
         }
       ],
 
@@ -2167,7 +2277,7 @@
 
     /**
      * ============================================================================
-     * SOUND ENGINE (Uses MP3s when present, Web Audio synthesizer fallback)
+     * SOUND ENGINE
      * ============================================================================
      */
     class SoundEngine {
@@ -2348,17 +2458,17 @@
           osc.connect(gain).connect(this.ctx.destination);
           osc.start(now);
           osc.stop(now + 0.11);
-        } else if (name === "boost") {
+        } else if (name === "boost" || name === "canFood") {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(440, now);
-          osc.frequency.exponentialRampToValueAtTime(1240, now + 0.18);
-          gain.gain.setValueAtTime(v * 0.42, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.type = name === "canFood" ? "triangle" : "sine";
+          osc.frequency.setValueAtTime(name === "canFood" ? 580 : 440, now);
+          osc.frequency.exponentialRampToValueAtTime(name === "canFood" ? 1480 : 1120, now + 0.19);
+          gain.gain.setValueAtTime(v * 0.45, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.21);
           osc.connect(gain).connect(this.ctx.destination);
           osc.start(now);
-          osc.stop(now + 0.21);
+          osc.stop(now + 0.22);
         } else if (name === "miss") {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
@@ -2408,7 +2518,10 @@
 
     /**
      * ============================================================================
-     * BURROW DASH 3-LANE RACING CONTROLLER (PAYESH OR MELOW)
+     * BURROW DASH 3-LANE RACING CONTROLLER
+     * - Gradual, slow start that gets harder slowly over time (no fish speed spike)
+     * - Fish + Canned Chicken Cat Food (higher points)
+     * - 3 Lives with crash photocard (.jpg) showing remaining lives on every crash
      * ============================================================================
      */
     class BurrowDashController {
@@ -2421,29 +2534,32 @@
 
         this.selectedRacerKey = "payesh";
         this.isRunning = false;
+        this.isPausedForCrash = false;
         this.rafId = null;
         this.lastFrameTime = 0;
 
-        this.lane = 1; // 0 = left, 1 = center, 2 = right
+        this.lane = 1;
         this.playerX = 0;
         this.playerTilt = 0;
+        this.lives = this.raceCfg.maxLives;
+        this.invulnTimerMs = 0;
+
         this.score = 0;
         this.fishCount = 0;
+        this.catFoodCount = 0;
         this.streak = 0;
         this.runSeconds = 0;
         this.currentSpeed = this.raceCfg.baseSpeedPxPerSec;
-        this.topSpeedRatio = 1.0;
-        this.boostRemainingMs = 0;
         this.scrollOffset = 0;
         this.spawnTimerMs = 0;
         this.lastSpawnLane = -1;
 
-        this.entities = []; // { id, kind, label, lane, y, vyMult, collected, nearMissed, radius }
-        this.particles = []; // { x, y, vx, vy, life, maxLife, color, size }
-        this.popups = []; // { x, y, text, color, life }
+        this.entities = [];
+        this.particles = [];
+        this.popups = [];
         this.spriteCache = {};
 
-        this.STORAGE_KEY = "burrow_dash_best_v1";
+        this.STORAGE_KEY = "burrow_dash_best_v2";
         this.touchStartX = null;
         this.touchStartY = null;
         this.toastTimer = null;
@@ -2451,27 +2567,33 @@
         this.dom = {
           stageView: document.getElementById("race-stage-view"),
           selectOverlay: document.getElementById("race-select-overlay"),
-          gameOverOverlay: document.getElementById("race-gameover-overlay"),
+          crashOverlay: document.getElementById("race-crash-overlay"),
           canvasWrap: document.getElementById("race-canvas-wrap"),
           canvas: document.getElementById("race-canvas"),
           toast: document.getElementById("race-toast"),
           hudRacer: document.getElementById("race-hud-racer"),
+          hudLives: document.getElementById("race-hud-lives"),
           hudScore: document.getElementById("race-hud-score"),
           hudBest: document.getElementById("race-hud-best"),
-          hudFish: document.getElementById("race-hud-fish"),
+          hudTreats: document.getElementById("race-hud-treats"),
           hudSpeed: document.getElementById("race-hud-speed"),
-          endHeading: document.getElementById("race-end-heading"),
-          endSub: document.getElementById("race-end-sub"),
-          endSprite: document.getElementById("race-end-sprite"),
-          picScore: document.getElementById("race-pic-score"),
-          picBest: document.getElementById("race-pic-best"),
-          picFish: document.getElementById("race-pic-fish"),
-          picSpeed: document.getElementById("race-pic-speed")
+          crashFrame: document.getElementById("race-crash-frame"),
+          crashImg: document.getElementById("race-crash-img"),
+          crashSprite: document.getElementById("race-crash-sprite"),
+          crashLivesBadge: document.getElementById("race-crash-lives-badge"),
+          crashHeading: document.getElementById("race-crash-heading"),
+          crashSub: document.getElementById("race-crash-sub"),
+          crashPath: document.getElementById("race-crash-path"),
+          crashScore: document.getElementById("race-crash-score"),
+          crashBest: document.getElementById("race-crash-best"),
+          crashFish: document.getElementById("race-crash-fish"),
+          crashCans: document.getElementById("race-crash-cans"),
+          btnCrashAction: document.getElementById("btn-race-crash-action")
         };
 
         this.ctx = this.dom.canvas.getContext("2d");
         this._preloadSprites();
-        this._setupSelectFallbacks();
+        this._setupFallbacks();
         this._bindEvents();
       }
 
@@ -2493,12 +2615,19 @@
         });
       }
 
-      _setupSelectFallbacks() {
+      _setupFallbacks() {
         ["racer-avatar-payesh", "racer-avatar-melow"].forEach((id) => {
           const box = document.getElementById(id);
           const img = box.querySelector("img");
           img.addEventListener("error", () => box.classList.add("img-error"));
           img.addEventListener("load", () => box.classList.remove("img-error"));
+        });
+
+        this.dom.crashImg.addEventListener("error", () => {
+          this.dom.crashFrame.classList.add("img-error");
+        });
+        this.dom.crashImg.addEventListener("load", () => {
+          this.dom.crashFrame.classList.remove("img-error");
         });
       }
 
@@ -2528,9 +2657,13 @@
           this.onExitHome();
         });
 
-        document.getElementById("btn-race-retry").addEventListener("click", () => {
+        this.dom.btnCrashAction.addEventListener("click", () => {
           this.sound.playSfx("button");
-          this.startRace(this.selectedRacerKey);
+          if (this.lives > 0) {
+            this._resumeAfterCrash();
+          } else {
+            this.startRace(this.selectedRacerKey);
+          }
         });
 
         document.getElementById("btn-race-choose-again").addEventListener("click", () => {
@@ -2552,7 +2685,7 @@
         });
 
         window.addEventListener("keydown", (e) => {
-          if (!this.isRunning) return;
+          if (!this.isRunning || this.isPausedForCrash) return;
           if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
             e.preventDefault();
             this.shiftLane(-1);
@@ -2562,15 +2695,14 @@
           }
         });
 
-        // Swipe + Tap on canvas wrap
         this.dom.canvasWrap.addEventListener("pointerdown", (e) => {
-          if (!this.isRunning) return;
+          if (!this.isRunning || this.isPausedForCrash) return;
           this.touchStartX = e.clientX;
           this.touchStartY = e.clientY;
         });
 
         this.dom.canvasWrap.addEventListener("pointerup", (e) => {
-          if (!this.isRunning || this.touchStartX === null) return;
+          if (!this.isRunning || this.isPausedForCrash || this.touchStartX === null) return;
           const dx = e.clientX - this.touchStartX;
           const dy = e.clientY - this.touchStartY;
           this.touchStartX = null;
@@ -2584,7 +2716,6 @@
             if (relX < 0.36) this.shiftLane(-1);
             else if (relX > 0.64) this.shiftLane(1);
             else {
-              // Tap center: step toward nearest open lane
               if (this.lane === 1) this.shiftLane(Math.random() < 0.5 ? -1 : 1);
               else this.setLane(1);
             }
@@ -2595,8 +2726,9 @@
       openCharacterSelector() {
         this._stopLoop();
         this.isRunning = false;
+        this.isPausedForCrash = false;
         document.body.classList.remove("racing-playing");
-        this.dom.gameOverOverlay.classList.add("hidden");
+        this.dom.crashOverlay.classList.add("hidden");
         this.dom.stageView.classList.remove("hidden");
         this.dom.selectOverlay.classList.remove("hidden");
       }
@@ -2604,9 +2736,10 @@
       hideAll() {
         this._stopLoop();
         this.isRunning = false;
+        this.isPausedForCrash = false;
         document.body.classList.remove("racing-playing");
         this.dom.selectOverlay.classList.add("hidden");
-        this.dom.gameOverOverlay.classList.add("hidden");
+        this.dom.crashOverlay.classList.add("hidden");
         this.dom.stageView.classList.add("hidden");
       }
 
@@ -2616,23 +2749,27 @@
         const racer = this.raceCfg.racers[this.selectedRacerKey];
 
         this.dom.selectOverlay.classList.add("hidden");
-        this.dom.gameOverOverlay.classList.add("hidden");
+        this.dom.crashOverlay.classList.add("hidden");
         this.dom.stageView.classList.remove("hidden");
+        this.dom.canvasWrap.classList.remove("invulnerable");
         document.body.classList.add("racing-playing");
 
         this.isRunning = true;
+        this.isPausedForCrash = false;
         this.lane = 1;
         this.playerX = this._getLaneCenterX(1);
         this.playerTilt = 0;
+        this.lives = this.raceCfg.maxLives;
+        this.invulnTimerMs = 0;
+
         this.score = 0;
         this.fishCount = 0;
+        this.catFoodCount = 0;
         this.streak = 0;
         this.runSeconds = 0;
         this.currentSpeed = this.raceCfg.baseSpeedPxPerSec;
-        this.topSpeedRatio = 1.0;
-        this.boostRemainingMs = 0;
         this.scrollOffset = 0;
-        this.spawnTimerMs = 240;
+        this.spawnTimerMs = 450;
         this.lastSpawnLane = 1;
         this.entities = [];
         this.particles = [];
@@ -2640,28 +2777,47 @@
 
         this.dom.hudRacer.textContent = racer.name.toUpperCase();
         this._updateHud();
-        this._showToast(`${racer.name.toUpperCase()} ON THE TRACK — DODGE & GRAB FISH!`);
+        this._showToast(`${racer.name.toUpperCase()} — 3 LIVES • EASY START`);
         this.sound.startMusic();
 
         this.lastFrameTime = performance.now();
         this._loop(this.lastFrameTime);
       }
 
+      _resumeAfterCrash() {
+        if (this.lives <= 0) return;
+        this.dom.crashOverlay.classList.add("hidden");
+        this.isPausedForCrash = false;
+        this.isRunning = true;
+        this.invulnTimerMs = 1500;
+        this.dom.canvasWrap.classList.add("invulnerable");
+        document.body.classList.add("racing-playing");
+
+        // Clear obstacles close to the player so resumption is fair
+        const playerY = this.dom.canvas.height - 122;
+        this.entities = this.entities.filter((ent) => ent.kind !== "obstacle" || ent.y < playerY - 220);
+
+        this._showToast(`RESUMING — ${this.lives} ${this.lives === 1 ? "LIFE" : "LIVES"} LEFT`);
+        this.sound.startMusic();
+        this.lastFrameTime = performance.now();
+        this._loop(this.lastFrameTime);
+      }
+
       shiftLane(delta) {
-        if (!this.isRunning) return;
+        if (!this.isRunning || this.isPausedForCrash) return;
         const next = Math.max(0, Math.min(2, this.lane + delta));
         if (next !== this.lane) {
           this.lane = next;
-          this.playerTilt = delta * 0.24;
+          this.playerTilt = delta * 0.22;
           this.sound.playSfx("button");
         }
       }
 
       setLane(targetLane) {
-        if (!this.isRunning || targetLane === this.lane) return;
+        if (!this.isRunning || this.isPausedForCrash || targetLane === this.lane) return;
         const delta = targetLane > this.lane ? 1 : -1;
         this.lane = targetLane;
-        this.playerTilt = delta * 0.24;
+        this.playerTilt = delta * 0.22;
         this.sound.playSfx("button");
       }
 
@@ -2686,7 +2842,7 @@
       }
 
       _loop(now) {
-        if (!this.isRunning) return;
+        if (!this.isRunning || this.isPausedForCrash) return;
         const dtMs = Math.min(48, Math.max(1, now - this.lastFrameTime));
         this.lastFrameTime = now;
         const dt = dtMs / 1000;
@@ -2700,53 +2856,42 @@
       _update(dt, dtMs) {
         this.runSeconds += dt;
 
-        // Smooth speed ramp up as run continues
-        const baseRamped = Math.min(
+        // Gradual, slow speed ramp over time; eating fish/cat food does NOT spike speed
+        this.currentSpeed = Math.min(
           this.raceCfg.maxSpeedPxPerSec,
           this.raceCfg.baseSpeedPxPerSec + this.runSeconds * this.raceCfg.speedRampPerSec
         );
 
-        const racer = this.raceCfg.racers[this.selectedRacerKey];
-        if (this.boostRemainingMs > 0) {
-          this.boostRemainingMs = Math.max(0, this.boostRemainingMs - dtMs);
-          this.currentSpeed = Math.min(this.raceCfg.maxSpeedPxPerSec * 1.25, baseRamped * racer.boostMultiplier);
-          this.dom.canvasWrap.classList.add("boosting");
-        } else {
-          this.currentSpeed = baseRamped;
-          this.dom.canvasWrap.classList.remove("boosting");
-        }
-
-        const speedRatio = Number((this.currentSpeed / this.raceCfg.baseSpeedPxPerSec).toFixed(1));
-        if (speedRatio > this.topSpeedRatio) {
-          this.topSpeedRatio = speedRatio;
+        if (this.invulnTimerMs > 0) {
+          this.invulnTimerMs = Math.max(0, this.invulnTimerMs - dtMs);
+          if (this.invulnTimerMs === 0) {
+            this.dom.canvasWrap.classList.remove("invulnerable");
+          }
         }
 
         this.scrollOffset = (this.scrollOffset + this.currentSpeed * dt) % 120;
 
-        // Smooth lateral interpolation toward target lane
         const targetX = this._getLaneCenterX(this.lane);
-        this.playerX += (targetX - this.playerX) * Math.min(1, dt * 19);
+        this.playerX += (targetX - this.playerX) * Math.min(1, dt * 18);
         this.playerTilt += (0 - this.playerTilt) * Math.min(1, dt * 11);
 
-        // Passive distance score + boost bonus
-        const ptsGain = this.currentSpeed * dt * 0.24 * (1 + Math.min(1.5, this.streak * 0.1));
-        this.score += ptsGain;
+        // Gentle passive points
+        this.score += this.currentSpeed * dt * 0.14;
 
-        // Spawn logic
+        // Spawn pacing starts relaxed and gets tighter slowly
         this.spawnTimerMs -= dtMs;
         if (this.spawnTimerMs <= 0) {
           this._spawnWave();
-          const rampFactor = Math.min(1, this.runSeconds / 55);
+          const difficultyRatio = Math.min(1, this.runSeconds / 85);
           const interval =
             this.raceCfg.spawnIntervalStartMs -
-            (this.raceCfg.spawnIntervalStartMs - this.raceCfg.spawnIntervalMinMs) * rampFactor;
-          this.spawnTimerMs = Math.max(this.raceCfg.spawnIntervalMinMs, interval * (0.82 + Math.random() * 0.36));
+            (this.raceCfg.spawnIntervalStartMs - this.raceCfg.spawnIntervalMinMs) * difficultyRatio;
+          this.spawnTimerMs = Math.max(this.raceCfg.spawnIntervalMinMs, interval * (0.85 + Math.random() * 0.3));
         }
 
         const playerY = this.dom.canvas.height - 122;
-        const playerHitR = 26;
+        const playerHitR = 25;
 
-        // Update entities & check collisions / fish pickups / near-misses
         for (let i = this.entities.length - 1; i >= 0; i--) {
           const ent = this.entities[i];
           ent.y += this.currentSpeed * (ent.vyMult || 1) * dt;
@@ -2756,26 +2901,28 @@
             const dx = Math.abs(this.playerX - entX);
             const dy = Math.abs(playerY - ent.y);
 
-            if (ent.kind === "fish") {
+            if (ent.kind === "fish" || ent.kind === "catfood") {
               if (dx < playerHitR + ent.radius && dy < playerHitR + ent.radius + 8) {
                 ent.collected = true;
-                this._collectFish(entX, ent.y);
+                if (ent.kind === "catfood") {
+                  this._collectCatFood(entX, ent.y);
+                } else {
+                  this._collectFish(entX, ent.y);
+                }
                 this.entities.splice(i, 1);
                 continue;
               }
-            } else {
-              // Obstacle collision
-              if (dx < playerHitR + ent.radius * 0.78 && dy < playerHitR + ent.radius * 0.78) {
+            } else if (ent.kind === "obstacle" && this.invulnTimerMs <= 0) {
+              if (dx < playerHitR + ent.radius * 0.74 && dy < playerHitR + ent.radius * 0.74) {
                 this._crashOnObstacle(ent);
                 return;
               }
 
-              // Close lane pass bonus
               if (!ent.nearMissed && ent.y > playerY + ent.radius && Math.abs(ent.lane - this.lane) === 1 && dx < this._getTrackBounds().laneWidth * 1.15) {
                 ent.nearMissed = true;
                 this.streak++;
-                this.score += 35;
-                this._spawnPopup(this.playerX, playerY - 46, "CLOSE DODGE +35", "#ffd166");
+                this.score += 25;
+                this._spawnPopup(this.playerX, playerY - 44, "DODGE +25", "#ffd166");
               }
             }
           }
@@ -2785,7 +2932,6 @@
           }
         }
 
-        // Particles & popups
         for (let i = this.particles.length - 1; i >= 0; i--) {
           const p = this.particles[i];
           p.x += p.vx * dt;
@@ -2796,7 +2942,7 @@
 
         for (let i = this.popups.length - 1; i >= 0; i--) {
           const pop = this.popups[i];
-          pop.y -= 48 * dt;
+          pop.y -= 46 * dt;
           pop.life -= dtMs;
           if (pop.life <= 0) this.popups.splice(i, 1);
         }
@@ -2805,22 +2951,22 @@
       }
 
       _spawnWave() {
-        // Always keep at least 1 safe lane when spawning multiple things
         const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
-        const primaryLane = lanes[0] === this.lastSpawnLane && Math.random() < 0.65 ? lanes[1] : lanes[0];
+        const primaryLane = lanes[0] === this.lastSpawnLane && Math.random() < 0.6 ? lanes[1] : lanes[0];
         this.lastSpawnLane = primaryLane;
 
         const obstaclePool = [
-          { kind: "ragib", label: "RAGIB", radius: 28, vyMult: 1.02 },
-          { kind: "tanha", label: "TANHA", radius: 28, vyMult: 1.0 },
-          { kind: "neha", label: "NEHA", radius: 28, vyMult: 1.04 },
-          { kind: "log", label: "LOG", radius: 30, vyMult: 1.0 },
-          { kind: "rock", label: "ROCK", radius: 27, vyMult: 1.0 }
+          { spriteKey: "ragib", label: "RAGIB", radius: 27, vyMult: 1.0 },
+          { spriteKey: "tanha", label: "TANHA", radius: 27, vyMult: 1.0 },
+          { spriteKey: "neha", label: "NEHA", radius: 27, vyMult: 1.02 },
+          { spriteKey: "log", label: "LOG", radius: 29, vyMult: 1.0 },
+          { spriteKey: "rock", label: "ROCK", radius: 26, vyMult: 1.0 }
         ];
 
         const obs = obstaclePool[Math.floor(Math.random() * obstaclePool.length)];
         this.entities.push({
           id: Math.random().toString(36).slice(2),
+          kind: "obstacle",
           ...obs,
           lane: primaryLane,
           y: -55,
@@ -2828,33 +2974,35 @@
           nearMissed: false
         });
 
-        // Spawn a fish treat in a different lane ~55% of the time
-        if (Math.random() < 0.55) {
-          const fishLane = lanes.find((l) => l !== primaryLane);
+        // Spawn either canned chicken cat food (higher points) or fish treat in an open lane
+        const openLane = lanes.find((l) => l !== primaryLane);
+        const roll = Math.random();
+        if (roll < 0.62) {
+          const isCan = roll < 0.24;
           this.entities.push({
             id: Math.random().toString(36).slice(2),
-            kind: "fish",
-            label: "FISH",
-            lane: fishLane,
-            y: -115,
+            kind: isCan ? "catfood" : "fish",
+            label: isCan ? "CHICKEN CAN" : "FISH",
+            lane: openLane,
+            y: -125,
             vyMult: 1.0,
-            radius: 22,
+            radius: isCan ? 24 : 21,
             collected: false,
             nearMissed: false
           });
         }
 
-        // At higher speeds, occasionally place a second obstacle in the remaining non-fish lane
-        if (this.runSeconds > 14 && Math.random() < 0.36) {
-          const thirdLane = lanes.find((l) => l !== primaryLane);
-          const hasFishThere = this.entities.some((e) => e.kind === "fish" && e.lane === thirdLane && e.y < 120);
-          if (!hasFishThere) {
+        // Only add a second obstacle once runSeconds > 25 so the start stays gentle
+        if (this.runSeconds > 25 && Math.random() < 0.28) {
+          const thirdLane = lanes.find((l) => l !== primaryLane && l !== openLane);
+          if (thirdLane !== undefined) {
             const obs2 = obstaclePool[Math.floor(Math.random() * obstaclePool.length)];
             this.entities.push({
               id: Math.random().toString(36).slice(2),
+              kind: "obstacle",
               ...obs2,
               lane: thirdLane,
-              y: -165,
+              y: -185,
               collected: false,
               nearMissed: false
             });
@@ -2866,26 +3014,41 @@
         const racer = this.raceCfg.racers[this.selectedRacerKey];
         this.fishCount++;
         this.streak++;
-        const pts = racer.treatBonusPts + (this.streak - 1) * 25;
+        const pts = racer.fishPoints + Math.min(120, (this.streak - 1) * 15);
         this.score += pts;
-        this.boostRemainingMs = racer.boostDurationMs;
 
         this.sound.playSfx("boost");
-        this.arcade._flashScreen("rgba(92, 225, 230, 0.16)", 110);
-        this._showToast(`FISH BOOST! +${pts} PTS`);
-        this._spawnPopup(x, y - 16, `+${pts} FISH!`, "#5ce1e6");
+        this._showToast(`FISH TREAT +${pts} PTS`);
+        this._spawnPopup(x, y - 16, `+${pts} FISH`, "#5ce1e6");
+        this._burstParticles(x, y, ["#5ce1e6", "#f2ece1"], 10);
+      }
 
-        for (let k = 0; k < 14; k++) {
-          const angle = (Math.PI * 2 * k) / 14;
-          const spd = 70 + Math.random() * 140;
+      _collectCatFood(x, y) {
+        const racer = this.raceCfg.racers[this.selectedRacerKey];
+        this.catFoodCount++;
+        this.streak++;
+        const pts = racer.catFoodPoints + Math.min(200, (this.streak - 1) * 25);
+        this.score += pts;
+
+        this.sound.playSfx("canFood");
+        this.arcade._flashScreen("rgba(255, 183, 77, 0.16)", 120);
+        this._showToast(`CHICKEN CAT FOOD +${pts} PTS!`);
+        this._spawnPopup(x, y - 18, `+${pts} CAN!`, "#ffb74d");
+        this._burstParticles(x, y, ["#ffb74d", "#ff7b29", "#fff3d6"], 16);
+      }
+
+      _burstParticles(x, y, colors, count) {
+        for (let k = 0; k < count; k++) {
+          const angle = (Math.PI * 2 * k) / count;
+          const spd = 65 + Math.random() * 125;
           this.particles.push({
             x,
             y,
             vx: Math.cos(angle) * spd,
             vy: Math.sin(angle) * spd,
-            life: 420,
-            maxLife: 420,
-            color: k % 2 === 0 ? "#5ce1e6" : "#ffd166",
+            life: 400,
+            maxLife: 400,
+            color: colors[k % colors.length],
             size: 4 + Math.random() * 3
           });
         }
@@ -2893,31 +3056,51 @@
 
       _crashOnObstacle(obstacle) {
         this.isRunning = false;
+        this.isPausedForCrash = true;
         this._stopLoop();
         this.sound.stopMusic();
         this.sound.playSfx("catHit");
         document.body.classList.remove("racing-playing");
 
+        this.lives = Math.max(0, this.lives - 1);
+        this._updateHud();
+
         this.arcade._flashScreen("rgba(184, 41, 41, 0.55)", 260);
-        this.arcade._shakeScreen(this.config.visuals.screenShakeIntensity * 2.2, 300);
+        this.arcade._shakeScreen(this.config.visuals.screenShakeIntensity * 2.1, 300);
 
         const finalScore = Math.floor(this.score);
         const best = this._saveBest(finalScore);
         const racer = this.raceCfg.racers[this.selectedRacerKey];
+        const cardPath =
+          this.raceCfg.crashPhotocards[this.lives] ||
+          this.raceCfg.crashPhotocards[0];
 
-        this.dom.endHeading.textContent = `${racer.name.toUpperCase()} WIPED OUT!`;
-        this.dom.endSub.textContent = `Hit ${obstacle.label} in Lane ${obstacle.lane + 1} at ${this.topSpeedRatio.toFixed(1)}x speed.`;
-        this.dom.endSprite.src = racer.image;
-        this.dom.endSprite.alt = racer.name;
+        this.dom.crashFrame.classList.remove("img-error");
+        this.dom.crashImg.src = cardPath;
+        this.dom.crashSprite.src = racer.image;
+        this.dom.crashSprite.alt = racer.name;
 
-        this.dom.picScore.textContent = finalScore;
-        this.dom.picBest.textContent = best;
-        this.dom.picFish.textContent = this.fishCount;
-        this.dom.picSpeed.textContent = `${this.topSpeedRatio.toFixed(1)}x`;
+        if (this.lives > 0) {
+          this.dom.crashLivesBadge.textContent = `${this.lives} ${this.lives === 1 ? "LIFE LEFT" : "LIVES LEFT"}`;
+          this.dom.crashHeading.textContent = `${racer.name.toUpperCase()} CRASHED!`;
+          this.dom.crashSub.textContent = `Hit ${obstacle.label} — ${this.lives} ${this.lives === 1 ? "chance" : "chances"} left.`;
+          this.dom.btnCrashAction.textContent = `CONTINUE (${this.lives} ${this.lives === 1 ? "LIFE" : "LIVES"} LEFT)`;
+        } else {
+          this.dom.crashLivesBadge.textContent = "0 LIVES LEFT • GAME OVER";
+          this.dom.crashHeading.textContent = "OUT OF LIVES!";
+          this.dom.crashSub.textContent = `Final crash on ${obstacle.label} with 0 chances left.`;
+          this.dom.btnCrashAction.textContent = "RACE AGAIN (3 LIVES)";
+        }
+
+        this.dom.crashPath.textContent = `Photocard JPG: ${cardPath}`;
+        this.dom.crashScore.textContent = finalScore;
+        this.dom.crashBest.textContent = best;
+        this.dom.crashFish.textContent = this.fishCount;
+        this.dom.crashCans.textContent = this.catFoodCount;
 
         setTimeout(() => {
-          this.dom.gameOverOverlay.classList.remove("hidden");
-        }, 220);
+          this.dom.crashOverlay.classList.remove("hidden");
+        }, 200);
       }
 
       _spawnPopup(x, y, text, color) {
@@ -2953,27 +3136,27 @@
       _updateHud() {
         const s = Math.floor(this.score);
         const best = Math.max(s, this._loadBest());
-        const speedRatio = (this.currentSpeed / this.raceCfg.baseSpeedPxPerSec).toFixed(1);
+        const speedRatio = (this.currentSpeed / 360).toFixed(1);
+        const hearts = "♥".repeat(this.lives) + "♡".repeat(Math.max(0, this.raceCfg.maxLives - this.lives));
+
+        this.dom.hudLives.textContent = `${hearts || "♡"} (${this.lives})`;
         this.dom.hudScore.textContent = s;
         this.dom.hudBest.textContent = best;
-        this.dom.hudFish.textContent = this.fishCount;
-        this.dom.hudSpeed.textContent = this.boostRemainingMs > 0 ? `${speedRatio}x ⚡` : `${speedRatio}x`;
+        this.dom.hudTreats.textContent = `${this.fishCount} / ${this.catFoodCount}`;
+        this.dom.hudSpeed.textContent = `${speedRatio}x`;
       }
 
       _render() {
         const ctx = this.ctx;
         const { w, h, left, trackWidth, laneWidth } = this._getTrackBounds();
 
-        // Outer burrow turf
         ctx.fillStyle = "#121d16";
         ctx.fillRect(0, 0, w, h);
 
-        // Side grass/moss stripes
         ctx.fillStyle = "#1a2b20";
         ctx.fillRect(left - 14, 0, 14, h);
         ctx.fillRect(left + trackWidth, 0, 14, h);
 
-        // Main dirt/stone track
         const grad = ctx.createLinearGradient(left, 0, left + trackWidth, 0);
         grad.addColorStop(0, "#241b14");
         grad.addColorStop(0.5, "#2f231a");
@@ -2981,13 +3164,6 @@
         ctx.fillStyle = grad;
         ctx.fillRect(left, 0, trackWidth, h);
 
-        // Boost aura on track
-        if (this.boostRemainingMs > 0) {
-          ctx.fillStyle = "rgba(92, 225, 230, 0.08)";
-          ctx.fillRect(left, 0, trackWidth, h);
-        }
-
-        // Animated scrolling track markers
         ctx.strokeStyle = "rgba(242, 236, 225, 0.22)";
         ctx.lineWidth = 3;
         ctx.setLineDash([28, 32]);
@@ -3002,17 +3178,17 @@
         }
         ctx.setLineDash([]);
 
-        // Draw entities
         for (const ent of this.entities) {
           const ex = this._getLaneCenterX(ent.lane);
           this._drawEntity(ctx, ent, ex, ent.y);
         }
 
-        // Draw player racer (Payesh or Melow)
         const playerY = h - 122;
-        this._drawRacer(ctx, this.playerX, playerY, this.playerTilt);
+        const blinkSkip = this.invulnTimerMs > 0 && Math.floor(this.invulnTimerMs / 90) % 2 === 0;
+        if (!blinkSkip) {
+          this._drawRacer(ctx, this.playerX, playerY, this.playerTilt);
+        }
 
-        // Draw particles
         for (const p of this.particles) {
           ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
           ctx.fillStyle = p.color;
@@ -3022,7 +3198,6 @@
         }
         ctx.globalAlpha = 1;
 
-        // Draw floating score popups
         ctx.font = "800 15px " + getComputedStyle(document.documentElement).getPropertyValue("--font-mono");
         ctx.textAlign = "center";
         for (const pop of this.popups) {
@@ -3043,19 +3218,10 @@
         ctx.translate(x, y);
         ctx.rotate(tilt);
 
-        // Ground shadow
         ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
         ctx.beginPath();
         ctx.ellipse(0, 30, 26, 9, 0, 0, Math.PI * 2);
         ctx.fill();
-
-        if (this.boostRemainingMs > 0) {
-          ctx.strokeStyle = "#5ce1e6";
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(0, 0, 36, 0, Math.PI * 2);
-          ctx.stroke();
-        }
 
         if (sprite && sprite.complete && sprite.naturalWidth > 0) {
           ctx.drawImage(sprite, -34, -38, 68, 68);
@@ -3082,10 +3248,9 @@
         ctx.translate(x, y);
 
         if (ent.kind === "fish") {
-          // Glowing fish treat
           ctx.fillStyle = "rgba(92, 225, 230, 0.22)";
           ctx.beginPath();
-          ctx.arc(0, 0, 25, 0, Math.PI * 2);
+          ctx.arc(0, 0, 24, 0, Math.PI * 2);
           ctx.fill();
 
           ctx.fillStyle = "#5ce1e6";
@@ -3093,7 +3258,6 @@
           ctx.ellipse(-2, 0, 15, 8, 0, 0, Math.PI * 2);
           ctx.fill();
 
-          // Tail fin
           ctx.beginPath();
           ctx.moveTo(11, 0);
           ctx.lineTo(21, -8);
@@ -3105,8 +3269,36 @@
           ctx.beginPath();
           ctx.arc(-9, -2, 2.2, 0, Math.PI * 2);
           ctx.fill();
-        } else if (ent.kind === "log") {
-          // Burrow log
+        } else if (ent.kind === "catfood") {
+          // Canned Chicken Cat Food tin
+          ctx.fillStyle = "rgba(255, 183, 77, 0.25)";
+          ctx.beginPath();
+          ctx.arc(0, 0, 28, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Can body
+          ctx.fillStyle = "#c94a38";
+          ctx.beginPath();
+          ctx.roundRect(-18, -14, 36, 28, 6);
+          ctx.fill();
+          ctx.strokeStyle = "#f2ece1";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Metallic rim & lid
+          ctx.fillStyle = "#cfd8dc";
+          ctx.beginPath();
+          ctx.roundRect(-19, -17, 38, 6, 3);
+          ctx.fill();
+
+          // Label text
+          ctx.fillStyle = "#fff3d6";
+          ctx.font = "900 8px " + getComputedStyle(document.documentElement).getPropertyValue("--font-mono");
+          ctx.textAlign = "center";
+          ctx.fillText("CHICKEN", 0, 2);
+          ctx.fillStyle = "#ffd166";
+          ctx.fillText("CAN", 0, 10);
+        } else if (ent.spriteKey === "log") {
           ctx.fillStyle = "#5c3a21";
           ctx.beginPath();
           ctx.roundRect(-34, -14, 68, 28, 10);
@@ -3119,8 +3311,7 @@
           ctx.beginPath();
           ctx.ellipse(26, 0, 6, 11, 0, 0, Math.PI * 2);
           ctx.fill();
-        } else if (ent.kind === "rock") {
-          // Burrow rock
+        } else if (ent.spriteKey === "rock") {
           ctx.fillStyle = "#565e59";
           ctx.beginPath();
           ctx.moveTo(-24, 14);
@@ -3135,13 +3326,12 @@
           ctx.lineWidth = 2;
           ctx.stroke();
         } else {
-          // Ragib, Tanha, Neha obstacle
-          const sprite = this.spriteCache[ent.kind];
+          const sprite = this.spriteCache[ent.spriteKey];
           if (sprite && sprite.complete && sprite.naturalWidth > 0) {
             ctx.drawImage(sprite, -30, -34, 60, 60);
           } else {
             const colors = { ragib: "#e05a47", tanha: "#d96b27", neha: "#c94a7c" };
-            ctx.fillStyle = colors[ent.kind] || "#d96b27";
+            ctx.fillStyle = colors[ent.spriteKey] || "#d96b27";
             ctx.beginPath();
             ctx.arc(0, 0, 25, 0, Math.PI * 2);
             ctx.fill();
@@ -3150,7 +3340,6 @@
             ctx.stroke();
           }
 
-          // Name tag pill below obstacle
           ctx.fillStyle = "rgba(17, 21, 18, 0.88)";
           ctx.beginPath();
           ctx.roundRect(-28, 22, 56, 16, 5);
@@ -3167,7 +3356,7 @@
 
     /**
      * ============================================================================
-     * CAT-TAC-TOE CONTROLLER (Payesh = X, Melow = O, Meaw AI / 2P, Photocards)
+     * CAT-TAC-TOE CONTROLLER
      * ============================================================================
      */
     class CatTacToeController {
@@ -3182,11 +3371,7 @@
         this.isGameOver = false;
         this.aiTimer = null;
 
-        this.scores = {
-          payesh: 0,
-          melow: 0,
-          draw: 0
-        };
+        this.scores = { payesh: 0, melow: 0, draw: 0 };
 
         this.WIN_LINES = [
           [0, 1, 2], [3, 4, 5], [6, 7, 8],
