@@ -1,1 +1,1950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DON'T HURT THE CATS.</title>
+  <style>
+    /* ==========================================================================
+       CORE VARIABLES & RESET (Overridden dynamically by GAME_CONFIG.visuals)
+       ========================================================================== */
+    :root {
+      --bg-color: #16241b;
+      --bg-texture: #101b14;
+      --olive-surface: #253629;
+      --olive-border: #3a4f3f;
+      --hole-rim: #3b281c;
+      --hole-depth: #140d09;
+      --charcoal: #121513;
+      --cream: #f2ece1;
+      --cream-muted: #a6a196;
+      --accent: #d96b27;
+      --accent-hover: #f07b32;
+      --danger: #b82929;
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --crosshair-size: 46px;
+      --char-width: 120px;
+      --anim-speed: 1;
+    }
 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-color);
+      color: var(--cream);
+      font-family: var(--font-main);
+      touch-action: manipulation;
+    }
+
+    /* Subtle organic grain & vignette background */
+    body {
+      background-image:
+        radial-gradient(circle at 50% 45%, rgba(45, 71, 53, 0.35) 0%, rgba(16, 27, 20, 0.92) 100%),
+        repeating-radial-gradient(circle at 0 0, transparent 0, var(--bg-texture) 12px),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 2px, transparent 2px, transparent 6px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    body.playing {
+      cursor: none;
+    }
+    body.playing * {
+      cursor: none !important;
+    }
+
+    /* ==========================================================================
+       SCREEN FLASH & SHAKE CONTAINERS
+       ========================================================================== */
+    #app-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.05s linear;
+    }
+
+    #screen-flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 900;
+      opacity: 0;
+      transition: opacity 0.12s ease-out;
+    }
+
+    /* ==========================================================================
+       CUSTOM TACTICAL CROSSHAIR
+       ========================================================================== */
+    #crosshair {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--crosshair-size);
+      height: var(--crosshair-size);
+      pointer-events: none;
+      z-index: 1000;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: width 0.12s ease, height 0.12s ease, opacity 0.15s ease;
+    }
+
+    body.playing #crosshair.active {
+      opacity: 1;
+    }
+
+    #crosshair svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #crosshair.hover-target svg {
+      transform: scale(1.22) rotate(45deg);
+    }
+
+    #crosshair.hover-target .ch-ring {
+      stroke: var(--accent);
+    }
+
+    #crosshair.recoil svg {
+      transform: scale(1.45);
+    }
+
+    /* ==========================================================================
+       MINIMALIST HUD (TOP BAR)
+       ========================================================================== */
+    #hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: linear-gradient(180deg, rgba(18, 21, 19, 0.85) 0%, rgba(18, 21, 19, 0) 100%);
+      z-index: 50;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hud-group {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--cream-muted);
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--cream);
+      line-height: 1.1;
+    }
+
+    .stat-value.accent {
+      color: var(--accent);
+    }
+
+    #combo-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background-color: var(--olive-surface);
+      border: 1px solid var(--olive-border);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--cream-muted);
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    #combo-badge.active {
+      background-color: var(--accent);
+      border-color: var(--cream);
+      color: var(--charcoal);
+      transform: scale(1.08);
+    }
+
+    #difficulty-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(37, 54, 41, 0.85);
+      border: 1px solid var(--olive-border);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cream);
+    }
+
+    .hud-audio-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--olive-surface);
+      border: 1px solid var(--olive-border);
+      color: var(--cream);
+      padding: 7px 11px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+    }
+
+    .icon-btn:hover {
+      background: #314736;
+      border-color: var(--cream-muted);
+    }
+
+    .icon-btn.muted {
+      opacity: 0.45;
+      text-decoration: line-through;
+    }
+
+    /* ==========================================================================
+       ARENA & RABBIT HOLES (3x2 FORMATION)
+       ========================================================================== */
+    #arena {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      position: relative;
+    }
+
+    #holes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: clamp(24px, 5vw, 64px) clamp(20px, 6vw, 84px);
+      width: 100%;
+      max-width: 860px;
+      align-items: end;
+      justify-items: center;
+      padding-top: 40px;
+    }
+
+    .hole-slot {
+      position: relative;
+      width: clamp(120px, 24vw, 195px);
+      height: clamp(145px, 27vw, 225px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    /* Back rim of the burrow */
+    .hole-back {
+      position: absolute;
+      bottom: 8px;
+      width: 92%;
+      height: 36px;
+      background: radial-gradient(ellipse at center, #090604 35%, var(--hole-depth) 85%, var(--hole-rim) 100%);
+      border-radius: 50%;
+      border-top: 4px solid #261911;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+      z-index: 1;
+    }
+
+    /* Clipping mask so character physically rises out of the hole */
+    .hole-mask {
+      position: absolute;
+      bottom: 22px;
+      width: 100%;
+      height: 195px;
+      overflow: hidden;
+      border-bottom-left-radius: 46% 16px;
+      border-bottom-right-radius: 46% 16px;
+      z-index: 2;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    /* Front earthen lip overlapping the bottom of the emerging character */
+    .hole-front-lip {
+      position: absolute;
+      bottom: 4px;
+      width: 96%;
+      height: 24px;
+      background: linear-gradient(180deg, #4b3425 0%, var(--hole-rim) 55%, #241810 100%);
+      border-radius: 50%;
+      clip-path: polygon(0 45%, 100% 45%, 100% 100%, 0% 100%);
+      z-index: 4;
+      pointer-events: none;
+      box-shadow: 0 8px 14px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Subtle grass tufts around hole */
+    .hole-tuft {
+      position: absolute;
+      bottom: 14px;
+      width: 104%;
+      height: 14px;
+      border-bottom: 3px dashed rgba(67, 94, 72, 0.45);
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ==========================================================================
+       CHARACTER SPRITE & ANIMATIONS
+       ========================================================================== */
+    .character-unit {
+      position: relative;
+      width: var(--char-width);
+      max-width: 86%;
+      transform: translateY(108%);
+      transform-origin: bottom center;
+      will-change: transform;
+      pointer-events: none;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .character-unit.active {
+      pointer-events: auto;
+    }
+
+    .character-unit img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5));
+      pointer-events: auto;
+    }
+
+    /* Fallback badge ONLY shown if user hasn't uploaded the PNG yet */
+    .missing-asset-tag {
+      display: none;
+      padding: 18px 10px;
+      background: var(--olive-surface);
+      border: 2px dashed var(--accent);
+      color: var(--cream);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      width: 92px;
+      height: 115px;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
+
+    .character-unit.img-error img {
+      display: none;
+    }
+    .character-unit.img-error .missing-asset-tag {
+      display: flex;
+    }
+
+    /* Subtle idle breathing/sway when fully emerged */
+    @keyframes charIdle {
+      0%, 100% { transform: translateY(0%) rotate(0deg); }
+      35% { transform: translateY(-3%) rotate(-1.5deg); }
+      70% { transform: translateY(-1.5%) rotate(1.5deg); }
+    }
+
+    .character-unit.idle-bob {
+      animation: charIdle 0.65s ease-in-out infinite;
+    }
+
+    /* Hit reaction */
+    .character-unit.shot-hit {
+      filter: brightness(2.2) saturate(0.2);
+      transform: translateY(12%) scale(0.86) rotate(8deg) !important;
+      transition: transform 0.11s ease-in, filter 0.08s linear !important;
+      pointer-events: none !important;
+    }
+
+    /* ==========================================================================
+       FLOATING COMBAT EFFECTS (MUZZLE FLASH, IMPACT, FLOATING SCORE)
+       ========================================================================== */
+    .muzzle-flash {
+      position: fixed;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff7e6 10%, var(--accent) 55%, transparent 75%);
+      transform: translate(-50%, -50%) scale(0.4);
+      pointer-events: none;
+      z-index: 850;
+      animation: muzzlePop 0.14s ease-out forwards;
+    }
+
+    @keyframes muzzlePop {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.65); }
+    }
+
+    .bullet-ring {
+      position: fixed;
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--cream);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.3);
+      pointer-events: none;
+      z-index: 849;
+      animation: ringExpand 0.24s ease-out forwards;
+    }
+
+    @keyframes ringExpand {
+      0% { opacity: 0.95; transform: translate(-50%, -50%) scale(0.3); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); }
+    }
+
+    .floating-text {
+      position: fixed;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--cream);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 860;
+      animation: floatUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .floating-text.combo {
+      color: var(--accent);
+      font-size: 1.45rem;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, -30%) scale(0.85); }
+      25% { opacity: 1; transform: translate(-50%, -80%) scale(1.1); }
+      100% { opacity: 0; transform: translate(-50%, -180%) scale(1); }
+    }
+
+    /* ==========================================================================
+       OVERLAY SCREENS (MAIN MENU & GAME OVER)
+       ========================================================================== */
+    .overlay-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(14, 21, 16, 0.91);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 500;
+      opacity: 1;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
+    }
+
+    .overlay-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 520px;
+      background: var(--olive-surface);
+      border: 1px solid var(--olive-border);
+      border-radius: 14px;
+      padding: clamp(24px, 5vw, 38px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+      text-align: center;
+      animation: panelEnter 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes panelEnter {
+      from { opacity: 0; transform: translateY(18px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .game-title {
+      font-size: clamp(1.85rem, 5vw, 2.55rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      color: var(--cream);
+      margin-bottom: 10px;
+    }
+
+    .game-subtitle {
+      font-size: 0.98rem;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 22px;
+    }
+
+    .rules-card {
+      background: rgba(18, 21, 19, 0.55);
+      border: 1px solid rgba(242, 236, 225, 0.08);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      text-align: left;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      color: var(--cream-muted);
+    }
+
+    .rules-card strong {
+      color: var(--cream);
+    }
+
+    .rules-card .warn {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .menu-records {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .record-item {
+      background: rgba(18, 21, 19, 0.45);
+      padding: 10px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(242, 236, 225, 0.06);
+    }
+
+    .record-item .label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--cream-muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .record-item .val {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cream);
+    }
+
+    .audio-settings-box {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(18, 21, 19, 0.45);
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.82rem;
+      color: var(--cream);
+    }
+
+    .slider-row label {
+      min-width: 90px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 5px;
+      background: var(--charcoal);
+      border-radius: 4px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 15px 24px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--charcoal);
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 13px 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cream);
+      background: transparent;
+      border: 1px solid var(--olive-border);
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(242, 236, 225, 0.08);
+      border-color: var(--cream-muted);
+    }
+
+    /* Game Over Specific Styling */
+    .gameover-panel {
+      border-color: var(--danger);
+      box-shadow: 0 24px 70px rgba(184, 41, 41, 0.28);
+    }
+
+    .gameover-title {
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      font-weight: 900;
+      color: #ef5350;
+      letter-spacing: 0.02em;
+      margin-bottom: 6px;
+    }
+
+    .gameover-sub {
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--cream-muted);
+      margin-bottom: 18px;
+    }
+
+    .culprit-preview {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: rgba(184, 41, 41, 0.16);
+      border: 2px solid rgba(239, 83, 80, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 8px;
+    }
+
+    .culprit-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .final-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    /* Mobile Adjustments */
+    @media (max-width: 600px) {
+      #hud {
+        padding: 12px 14px;
+      }
+      .hud-group {
+        gap: 12px;
+      }
+      .stat-value {
+        font-size: 1.1rem;
+      }
+      #holes-grid {
+        gap: 28px 14px;
+      }
+      #crosshair {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="screen-flash"></div>
+
+  <!-- Custom Tactical Crosshair -->
+  <div id="crosshair" aria-hidden="true">
+    <svg viewBox="0 0 60 60">
+      <circle class="ch-ring" cx="30" cy="30" r="20" fill="none" stroke="#f2ece1" stroke-width="1.75" stroke-dasharray="10 6" />
+      <circle cx="30" cy="30" r="2.5" fill="#d96b27" />
+      <line x1="30" y1="2" x2="30" y2="12" stroke="#f2ece1" stroke-width="1.75" />
+      <line x1="30" y1="48" x2="30" y2="58" stroke="#f2ece1" stroke-width="1.75" />
+      <line x1="2" y1="30" x2="12" y2="30" stroke="#f2ece1" stroke-width="1.75" />
+      <line x1="48" y1="30" x2="58" y2="30" stroke="#f2ece1" stroke-width="1.75" />
+    </svg>
+  </div>
+
+  <div id="app-wrapper">
+    <!-- Top Gameplay HUD -->
+    <header id="hud">
+      <div class="hud-group">
+        <div class="stat-box">
+          <span class="stat-label">Score</span>
+          <span class="stat-value accent" id="hud-score">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Best</span>
+          <span class="stat-value" id="hud-best">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Accuracy</span>
+          <span class="stat-value" id="hud-accuracy">100%</span>
+        </div>
+        <div id="combo-badge">1x COMBO</div>
+      </div>
+
+      <div class="hud-group">
+        <span id="difficulty-pill">INITIAL</span>
+        <div class="hud-audio-controls">
+          <button type="button" class="icon-btn" id="btn-toggle-music">Music: ON</button>
+          <button type="button" class="icon-btn" id="btn-toggle-sfx">SFX: ON</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main 3x2 Rabbit Hole Arena -->
+    <main id="arena">
+      <div id="holes-grid"></div>
+    </main>
+  </div>
+
+  <!-- MAIN MENU OVERLAY -->
+  <section id="menu-overlay" class="overlay-screen">
+    <div class="panel">
+      <h1 class="game-title">DON'T HURT THE CATS.</h1>
+      <p class="game-subtitle">Three targets. Two cats. One terrible mistake.</p>
+
+      <div class="rules-card">
+        <div><strong>SHOOT TARGETS (+10 PTS):</strong> Ragib, Tanha, Neha</div>
+        <div><span class="warn">PROTECT THE CATS (INSTANT LOSS):</span> Payesh &amp; Melow</div>
+        <div style="margin-top:6px;">Chain consecutive hits to multiply your score. Missing resets your combo.</div>
+      </div>
+
+      <div class="menu-records">
+        <div class="record-item">
+          <span class="label">High Score</span>
+          <span class="val" id="menu-best-score">0</span>
+        </div>
+        <div class="record-item">
+          <span class="label">Best Accuracy</span>
+          <span class="val" id="menu-best-acc">0%</span>
+        </div>
+        <div class="record-item">
+          <span class="label">Max Combo</span>
+          <span class="val" id="menu-best-combo">1x</span>
+        </div>
+      </div>
+
+      <div class="audio-settings-box">
+        <div class="slider-row">
+          <label for="slider-music">Music Vol</label>
+          <input type="range" id="slider-music" min="0" max="1" step="0.05" value="0.55" />
+        </div>
+        <div class="slider-row">
+          <label for="slider-sfx">SFX Vol</label>
+          <input type="range" id="slider-sfx" min="0" max="1" step="0.05" value="0.80" />
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="btn-start">START GAME</button>
+    </div>
+  </section>
+
+  <!-- GAME OVER OVERLAY -->
+  <section id="gameover-overlay" class="overlay-screen hidden">
+    <div class="panel gameover-panel">
+      <h2 class="gameover-title">YOU HURT THE CAT.</h2>
+      <p class="gameover-sub">Unforgivable.</p>
+
+      <div class="culprit-preview" id="culprit-box">
+        <img id="culprit-img" src="" alt="Protected Cat" />
+      </div>
+
+      <div class="final-stats-grid">
+        <div class="record-item">
+          <span class="label">Final Score</span>
+          <span class="val" id="go-score">0</span>
+        </div>
+        <div class="record-item">
+          <span class="label">Best Score</span>
+          <span class="val" id="go-best">0</span>
+        </div>
+        <div class="record-item">
+          <span class="label">Accuracy</span>
+          <span class="val" id="go-accuracy">0%</span>
+        </div>
+        <div class="record-item">
+          <span class="label">Highest Combo</span>
+          <span class="val" id="go-combo">1x</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="btn-retry">RETRY</button>
+      <button type="button" class="btn-secondary" id="btn-main-menu">MAIN MENU</button>
+    </div>
+  </section>
+
+  <script>
+    /**
+     * ============================================================================
+     * CENTRALIZED GAME CONFIGURATION
+     * Edit values here to customize characters, images, sounds, difficulty, and
+     * visuals without touching any other code.
+     * ============================================================================
+     */
+    const GAME_CONFIG = {
+      // 1. CHARACTER CUSTOMIZATION
+      characters: [
+        {
+          id: "ragib",
+          name: "Ragib",
+          type: "human", // "human" = shoot for points | "cat" = protected (instant game over)
+          image: "assets/characters/ragib.png",
+          scale: 1.0,
+          offsetX: 0, // horizontal adjustment in px
+          offsetY: 0, // vertical adjustment in px
+          frequency: 1.0, // relative spawn weight
+          appearSound: "appear"
+        },
+        {
+          id: "tanha",
+          name: "Tanha",
+          type: "human",
+          image: "assets/characters/tanha.png",
+          scale: 1.0,
+          offsetX: 0,
+          offsetY: 0,
+          frequency: 1.0,
+          appearSound: "appear"
+        },
+        {
+          id: "neha",
+          name: "Neha",
+          type: "human",
+          image: "assets/characters/neha.png",
+          scale: 1.0,
+          offsetX: 0,
+          offsetY: 0,
+          frequency: 1.0,
+          appearSound: "appear"
+        },
+        {
+          id: "payesh",
+          name: "Payesh",
+          type: "cat",
+          image: "assets/characters/payesh.png",
+          scale: 0.96,
+          offsetX: 0,
+          offsetY: 0,
+          frequency: 0.85,
+          appearSound: "catWarning"
+        },
+        {
+          id: "melow",
+          name: "Melow",
+          type: "cat",
+          image: "assets/characters/melow.png",
+          scale: 0.96,
+          offsetX: 0,
+          offsetY: 0,
+          frequency: 0.85,
+          appearSound: "catWarning"
+        }
+      ],
+
+      // 2. AUDIO FILE PATHS (Automatically falls back to built-in Web Audio synth if missing)
+      audio: {
+        bgm: "assets/audio/bgm.mp3",
+        gunshot: "assets/audio/gunshot.mp3",
+        hit: "assets/audio/hit.mp3",
+        miss: "assets/audio/miss.mp3",
+        appear: "assets/audio/appear.mp3",
+        disappear: "assets/audio/disappear.mp3",
+        catWarning: "assets/audio/cat-warning.mp3",
+        catHit: "assets/audio/cat-hit.mp3",
+        gameOver: "assets/audio/game-over.mp3",
+        button: "assets/audio/button.mp3",
+        defaultMusicVolume: 0.55,
+        defaultSfxVolume: 0.80
+      },
+
+      // 3. GAMEPLAY & DIFFICULTY PROGRESSION
+      gameplay: {
+        holeCount: 6, // 3 columns x 2 rows
+        basePoints: 10,
+        timedModeSeconds: 0, // 0 = endless until a cat is shot; set > 0 to enable countdown
+
+        // Combo multiplier thresholds: [consecutiveHits, multiplier]
+        comboTiers: [
+          { hits: 1, multiplier: 1 },
+          { hits: 2, multiplier: 2 },
+          { hits: 3, multiplier: 3 },
+          { hits: 5, multiplier: 5 },
+          { hits: 8, multiplier: 8 }
+        ],
+
+        // Difficulty tiers unlocked by score
+        difficultyLevels: [
+          { name: "INITIAL", minScore: 0,   visibilityMs: 650, minIntervalMs: 420, maxIntervalMs: 850, maxSimultaneous: 2, flashChance: 0.08 },
+          { name: "LEVEL 2", minScore: 80,  visibilityMs: 500, minIntervalMs: 340, maxIntervalMs: 700, maxSimultaneous: 2, flashChance: 0.12 },
+          { name: "LEVEL 3", minScore: 220, visibilityMs: 400, minIntervalMs: 280, maxIntervalMs: 580, maxSimultaneous: 3, flashChance: 0.16 },
+          { name: "LEVEL 4", minScore: 450, visibilityMs: 300, minIntervalMs: 220, maxIntervalMs: 470, maxSimultaneous: 3, flashChance: 0.20 },
+          { name: "LEVEL 5", minScore: 750, visibilityMs: 220, minIntervalMs: 170, maxIntervalMs: 380, maxSimultaneous: 3, flashChance: 0.24 },
+          { name: "EXTREME", minScore: 1200,visibilityMs: 160, minIntervalMs: 130, maxIntervalMs: 300, maxSimultaneous: 4, flashChance: 0.28 },
+          { name: "INSANE",  minScore: 1800,visibilityMs: 120, minIntervalMs: 95,  maxIntervalMs: 230, maxSimultaneous: 4, flashChance: 0.32 }
+        ]
+      },
+
+      // 4. VISUAL & ANIMATION SETTINGS
+      visuals: {
+        backgroundColor: "#16241b",
+        holeRimColor: "#3b281c",
+        accentColor: "#d96b27",
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        characterWidthPx: 120,
+        crosshairSizePx: 46,
+        animationSpeedMultiplier: 1.0, // > 1 faster, < 1 slower
+        screenShakeIntensity: 7 // pixels
+      }
+    };
+
+    /**
+     * ============================================================================
+     * HYBRID AUDIO ENGINE (HTML5 Audio + Web Audio API Procedural Synthesizer)
+     * Plays custom MP3s if uploaded; seamlessly synthesizes arcade BGM & SFX if
+     * files are absent so the game is immediately playable out of the box.
+     * ============================================================================
+     */
+    class SoundEngine {
+      constructor(config) {
+        this.config = config;
+        this.ctx = null;
+        this.musicVolume = config.defaultMusicVolume;
+        this.sfxVolume = config.defaultSfxVolume;
+        this.musicMuted = false;
+        this.sfxMuted = false;
+
+        this.bgmAudio = null;
+        this.bgmAvailable = false;
+        this.synthBgmTimer = null;
+        this.synthStep = 0;
+        this.isBgmPlaying = false;
+
+        this.sfxCache = {};
+        this._preloadAudioFiles();
+      }
+
+      _initContext() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === "suspended") {
+          this.ctx.resume().catch(() => {});
+        }
+      }
+
+      _preloadAudioFiles() {
+        // Preload BGM
+        const bgm = new Audio();
+        bgm.src = this.config.bgm;
+        bgm.loop = true;
+        bgm.preload = "auto";
+        bgm.addEventListener("canplaythrough", () => {
+          this.bgmAvailable = true;
+          this.bgmAudio = bgm;
+        }, { once: true });
+        bgm.addEventListener("error", () => {
+          this.bgmAvailable = false;
+        }, { once: true });
+
+        // Preload SFX
+        const sfxKeys = ["gunshot", "hit", "miss", "appear", "disappear", "catWarning", "catHit", "gameOver", "button"];
+        sfxKeys.forEach((key) => {
+          const path = this.config[key];
+          if (!path) return;
+          const a = new Audio();
+          a.src = path;
+          a.preload = "auto";
+          a.addEventListener("canplaythrough", () => {
+            this.sfxCache[key] = a;
+          }, { once: true });
+        });
+      }
+
+      setMusicVolume(val) {
+        this.musicVolume = parseFloat(val);
+        if (this.bgmAudio) {
+          this.bgmAudio.volume = this.musicMuted ? 0 : this.musicVolume;
+        }
+      }
+
+      setSfxVolume(val) {
+        this.sfxVolume = parseFloat(val);
+      }
+
+      toggleMusicMute() {
+        this.musicMuted = !this.musicMuted;
+        if (this.bgmAudio) {
+          this.bgmAudio.volume = this.musicMuted ? 0 : this.musicVolume;
+        }
+        return this.musicMuted;
+      }
+
+      toggleSfxMute() {
+        this.sfxMuted = !this.sfxMuted;
+        return this.sfxMuted;
+      }
+
+      startMusic() {
+        this._initContext();
+        this.stopMusic();
+        this.isBgmPlaying = true;
+
+        if (this.bgmAvailable && this.bgmAudio) {
+          this.bgmAudio.currentTime = 0;
+          this.bgmAudio.volume = this.musicMuted ? 0 : this.musicVolume;
+          this.bgmAudio.play().catch(() => this._startSynthBgm());
+        } else {
+          this._startSynthBgm();
+        }
+      }
+
+      stopMusic() {
+        this.isBgmPlaying = false;
+        if (this.bgmAudio) {
+          this.bgmAudio.pause();
+          this.bgmAudio.currentTime = 0;
+        }
+        if (this.synthBgmTimer) {
+          clearInterval(this.synthBgmTimer);
+          this.synthBgmTimer = null;
+        }
+      }
+
+      // Driving dark electronic arcade synth fallback loop (132 BPM 16th-note pulse)
+      _startSynthBgm() {
+        if (!this.ctx) return;
+        this.synthStep = 0;
+        const bassNotes = [55, 55, 65.41, 55, 73.42, 65.41, 49.0, 55]; // A1 dark minor groove
+        const stepMs = 113;
+
+        this.synthBgmTimer = setInterval(() => {
+          if (!this.isBgmPlaying || this.musicMuted || this.musicVolume <= 0.01) return;
+          const now = this.ctx.currentTime;
+          const step = this.synthStep % 16;
+          const vol = this.musicVolume * 0.28;
+
+          // Punchy kick on 0, 4, 8, 12
+          if (step % 4 === 0) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(135, now);
+            osc.frequency.exponentialRampToValueAtTime(36, now + 0.11);
+            gain.gain.setValueAtTime(vol * 1.4, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.14);
+          }
+
+          // Off-beat closed hi-hat
+          if (step % 2 === 1) {
+            const bufferSize = this.ctx.sampleRate * 0.03;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = "highpass";
+            filter.frequency.value = 7000;
+
+            const gain = this.ctx.createGain();
+            gain.gain.setValueAtTime(vol * 0.35, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+            noise.connect(filter).connect(gain).connect(this.ctx.destination);
+            noise.start(now);
+          }
+
+          // Deep rolling synth bassline
+          if (step % 2 === 0) {
+            const freq = bassNotes[(step / 2) % bassNotes.length];
+            const osc = this.ctx.createOscillator();
+            const filter = this.ctx.createBiquadFilter();
+            const gain = this.ctx.createGain();
+
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(freq, now);
+
+            filter.type = "lowpass";
+            filter.frequency.setValueAtTime(340, now);
+            filter.frequency.exponentialRampToValueAtTime(110, now + 0.16);
+
+            gain.gain.setValueAtTime(vol * 0.85, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+            osc.connect(filter).connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.19);
+          }
+
+          this.synthStep++;
+        }, stepMs);
+      }
+
+      playSfx(name) {
+        if (this.sfxMuted || this.sfxVolume <= 0.01) return;
+        this._initContext();
+
+        // Use custom MP3 if loaded
+        if (this.sfxCache[name]) {
+          const clone = this.sfxCache[name].cloneNode();
+          clone.volume = this.sfxVolume;
+          clone.play().catch(() => {});
+          return;
+        }
+
+        // Otherwise synthesize crisp Web Audio arcade SFX
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const v = this.sfxVolume;
+
+        switch (name) {
+          case "gunshot": {
+            // Sharp punchy transient + white noise burst
+            const bufferSize = this.ctx.sampleRate * 0.12;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.025));
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = "bandpass";
+            filter.frequency.setValueAtTime(1100, now);
+
+            const gain = this.ctx.createGain();
+            gain.gain.setValueAtTime(v * 0.7, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            noise.connect(filter).connect(gain).connect(this.ctx.destination);
+            noise.start(now);
+            break;
+          }
+          case "hit": {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(520, now);
+            osc.frequency.exponentialRampToValueAtTime(980, now + 0.09);
+            gain.gain.setValueAtTime(v * 0.45, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.11);
+            break;
+          }
+          case "combo": {
+            [660, 880, 1174].forEach((freq, idx) => {
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = "sine";
+              osc.frequency.setValueAtTime(freq, now + idx * 0.045);
+              gain.gain.setValueAtTime(v * 0.3, now + idx * 0.045);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.045 + 0.14);
+              osc.connect(gain).connect(this.ctx.destination);
+              osc.start(now + idx * 0.045);
+              osc.stop(now + idx * 0.045 + 0.15);
+            });
+            break;
+          }
+          case "miss": {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(190, now);
+            osc.frequency.exponentialRampToValueAtTime(110, now + 0.08);
+            gain.gain.setValueAtTime(v * 0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.1);
+            break;
+          }
+          case "appear": {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(210, now);
+            osc.frequency.exponentialRampToValueAtTime(390, now + 0.07);
+            gain.gain.setValueAtTime(v * 0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.09);
+            break;
+          }
+          case "catWarning": {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(740, now);
+            osc.frequency.exponentialRampToValueAtTime(920, now + 0.08);
+            gain.gain.setValueAtTime(v * 0.22, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.12);
+            break;
+          }
+          case "disappear": {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(280, now);
+            osc.frequency.exponentialRampToValueAtTime(140, now + 0.06);
+            gain.gain.setValueAtTime(v * 0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.08);
+            break;
+          }
+          case "catHit":
+          case "gameOver": {
+            // Dramatic heavy sub-bass drop
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.exponentialRampToValueAtTime(32, now + 0.65);
+            gain.gain.setValueAtTime(v * 0.85, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.72);
+            break;
+          }
+          case "button": {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(480, now);
+            gain.gain.setValueAtTime(v * 0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.06);
+            break;
+          }
+        }
+      }
+    }
+
+    /**
+     * ============================================================================
+     * MAIN ARCADE GAME CONTROLLER
+     * ============================================================================
+     */
+    class DontHurtTheCatsGame {
+      constructor(config) {
+        this.config = config;
+        this.sound = new SoundEngine(config.audio);
+
+        // Runtime State
+        this.isRunning = false;
+        this.score = 0;
+        this.shotsFired = 0;
+        this.shotsHit = 0;
+        this.consecutiveHits = 0;
+        this.highestCombo = 1;
+        this.currentMultiplier = 1;
+        this.currentDifficulty = config.gameplay.difficultyLevels[0];
+
+        // Timers & Hole Tracking
+        this.spawnLoopTimer = null;
+        this.holes = []; // Array of hole state objects
+        this.STORAGE_KEY = "dhtc_records_v1";
+
+        // DOM References
+        this.dom = {
+          wrapper: document.getElementById("app-wrapper"),
+          flash: document.getElementById("screen-flash"),
+          crosshair: document.getElementById("crosshair"),
+          grid: document.getElementById("holes-grid"),
+          arena: document.getElementById("arena"),
+          hudScore: document.getElementById("hud-score"),
+          hudBest: document.getElementById("hud-best"),
+          hudAccuracy: document.getElementById("hud-accuracy"),
+          comboBadge: document.getElementById("combo-badge"),
+          diffPill: document.getElementById("difficulty-pill"),
+          menuOverlay: document.getElementById("menu-overlay"),
+          gameoverOverlay: document.getElementById("gameover-overlay"),
+          culpritImg: document.getElementById("culprit-img"),
+          goScore: document.getElementById("go-score"),
+          goBest: document.getElementById("go-best"),
+          goAccuracy: document.getElementById("go-accuracy"),
+          goCombo: document.getElementById("go-combo"),
+          menuBestScore: document.getElementById("menu-best-score"),
+          menuBestAcc: document.getElementById("menu-best-acc"),
+          menuBestCombo: document.getElementById("menu-best-combo")
+        };
+
+        this._applyVisualConfig();
+        this._buildRabbitHoles();
+        this._bindEvents();
+        this._refreshRecordDisplays();
+      }
+
+      _applyVisualConfig() {
+        const v = this.config.visuals;
+        const root = document.documentElement.style;
+        root.setProperty("--bg-color", v.backgroundColor);
+        root.setProperty("--hole-rim", v.holeRimColor);
+        root.setProperty("--accent", v.accentColor);
+        root.setProperty("--font-main", v.fontFamily);
+        root.setProperty("--char-width", `${v.characterWidthPx}px`);
+        root.setProperty("--crosshair-size", `${v.crosshairSizePx}px`);
+        root.setProperty("--anim-speed", v.animationSpeedMultiplier);
+      }
+
+      _buildRabbitHoles() {
+        this.dom.grid.innerHTML = "";
+        this.holes = [];
+
+        for (let i = 0; i < this.config.gameplay.holeCount; i++) {
+          const slot = document.createElement("div");
+          slot.className = "hole-slot";
+          slot.dataset.holeIndex = i;
+
+          const tuft = document.createElement("div");
+          tuft.className = "hole-tuft";
+
+          const back = document.createElement("div");
+          back.className = "hole-back";
+
+          const mask = document.createElement("div");
+          mask.className = "hole-mask";
+
+          const unit = document.createElement("div");
+          unit.className = "character-unit";
+
+          const img = document.createElement("img");
+          img.draggable = false;
+          img.alt = "";
+
+          const fallbackTag = document.createElement("div");
+          fallbackTag.className = "missing-asset-tag";
+
+          img.addEventListener("error", () => {
+            unit.classList.add("img-error");
+          });
+          img.addEventListener("load", () => {
+            unit.classList.remove("img-error");
+          });
+
+          unit.appendChild(img);
+          unit.appendChild(fallbackTag);
+          mask.appendChild(unit);
+
+          const frontLip = document.createElement("div");
+          frontLip.className = "hole-front-lip";
+
+          slot.appendChild(tuft);
+          slot.appendChild(back);
+          slot.appendChild(mask);
+          slot.appendChild(frontLip);
+          this.dom.grid.appendChild(slot);
+
+          this.holes.push({
+            index: i,
+            slotEl: slot,
+            unitEl: unit,
+            imgEl: img,
+            fallbackEl: fallbackTag,
+            occupied: false,
+            character: null,
+            alreadyHit: false,
+            retreatTimer: null,
+            cleanupTimer: null
+          });
+        }
+      }
+
+      _bindEvents() {
+        // Crosshair tracking (Desktop mouse)
+        window.addEventListener("mousemove", (e) => {
+          this.dom.crosshair.style.left = `${e.clientX}px`;
+          this.dom.crosshair.style.top = `${e.clientY}px`;
+          if (this.isRunning) {
+            this.dom.crosshair.classList.add("active");
+          }
+
+          // Subtle hover feedback over active characters
+          const hoveredChar = e.target.closest(".character-unit.active");
+          if (hoveredChar) {
+            this.dom.crosshair.classList.add("hover-target");
+          } else {
+            this.dom.crosshair.classList.remove("hover-target");
+          }
+        });
+
+        // Unified Pointer Shooting (Works identically on Desktop Mouse & Mobile Touch)
+        this.dom.arena.addEventListener("pointerdown", (e) => {
+          if (!this.isRunning) return;
+          if (e.button !== undefined && e.button !== 0 && e.pointerType === "mouse") return;
+          e.preventDefault();
+          this._handleShot(e);
+        });
+
+        // Menu & HUD Buttons
+        document.getElementById("btn-start").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.startGame();
+        });
+
+        document.getElementById("btn-retry").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.startGame();
+        });
+
+        document.getElementById("btn-main-menu").addEventListener("click", () => {
+          this.sound.playSfx("button");
+          this.showMainMenu();
+        });
+
+        // Audio Sliders & Mute Toggles
+        const sliderMusic = document.getElementById("slider-music");
+        const sliderSfx = document.getElementById("slider-sfx");
+        const btnMusic = document.getElementById("btn-toggle-music");
+        const btnSfx = document.getElementById("btn-toggle-sfx");
+
+        sliderMusic.addEventListener("input", (e) => {
+          this.sound.setMusicVolume(e.target.value);
+        });
+
+        sliderSfx.addEventListener("input", (e) => {
+          this.sound.setSfxVolume(e.target.value);
+        });
+
+        btnMusic.addEventListener("click", () => {
+          const muted = this.sound.toggleMusicMute();
+          btnMusic.textContent = muted ? "Music: OFF" : "Music: ON";
+          btnMusic.classList.toggle("muted", muted);
+        });
+
+        btnSfx.addEventListener("click", () => {
+          const muted = this.sound.toggleSfxMute();
+          btnSfx.textContent = muted ? "SFX: OFF" : "SFX: ON";
+          btnSfx.classList.toggle("muted", muted);
+        });
+      }
+
+      /* ------------------------------------------------------------------------
+         GAME LIFECYCLE
+         ------------------------------------------------------------------------ */
+      startGame() {
+        this._clearAllTimers();
+        this._resetAllHoles();
+
+        this.isRunning = true;
+        this.score = 0;
+        this.shotsFired = 0;
+        this.shotsHit = 0;
+        this.consecutiveHits = 0;
+        this.highestCombo = 1;
+        this.currentMultiplier = 1;
+        this.currentDifficulty = this.config.gameplay.difficultyLevels[0];
+
+        document.body.classList.add("playing");
+        this.dom.menuOverlay.classList.add("hidden");
+        this.dom.gameoverOverlay.classList.add("hidden");
+
+        this._updateHud();
+        this.sound.startMusic();
+
+        // Schedule initial chaotic wave
+        this._scheduleNextSpawn(280);
+      }
+
+      showMainMenu() {
+        this.isRunning = false;
+        this._clearAllTimers();
+        this._resetAllHoles();
+        this.sound.stopMusic();
+
+        document.body.classList.remove("playing");
+        this.dom.crosshair.classList.remove("active");
+        this.dom.gameoverOverlay.classList.add("hidden");
+        this.dom.menuOverlay.classList.remove("hidden");
+        this._refreshRecordDisplays();
+      }
+
+      triggerCatGameOver(catCharacter) {
+        this.isRunning = false;
+        this._clearAllTimers();
+        this.sound.stopMusic();
+        this.sound.playSfx("catHit");
+
+        document.body.classList.remove("playing");
+        this.dom.crosshair.classList.remove("active");
+
+        // Dramatic red flash & heavy shake
+        this._flashScreen("rgba(184, 41, 41, 0.55)", 260);
+        this._shakeScreen(this.config.visuals.screenShakeIntensity * 2.2, 320);
+
+        // Save high scores
+        const accuracy = this._calculateAccuracy();
+        this._saveRecords(this.score, accuracy, this.highestCombo);
+
+        // Populate Game Over UI
+        this.dom.culpritImg.src = catCharacter.image;
+        this.dom.culpritImg.alt = catCharacter.name;
+        this.dom.goScore.textContent = this.score;
+        this.dom.goBest.textContent = this._loadRecords().bestScore;
+        this.dom.goAccuracy.textContent = `${accuracy}%`;
+        this.dom.goCombo.textContent = `${this.highestCombo}x`;
+
+        setTimeout(() => {
+          this.dom.gameoverOverlay.classList.remove("hidden");
+        }, 260);
+      }
+
+      /* ------------------------------------------------------------------------
+         CHAOTIC RANDOM SPAWNING ENGINE
+         ------------------------------------------------------------------------ */
+      _scheduleNextSpawn(delayOverride = null) {
+        if (!this.isRunning) return;
+
+        const diff = this.currentDifficulty;
+        const randomDelay = delayOverride !== null
+          ? delayOverride
+          : Math.floor(Math.random() * (diff.maxIntervalMs - diff.minIntervalMs + 1)) + diff.minIntervalMs;
+
+        this.spawnLoopTimer = setTimeout(() => {
+          if (!this.isRunning) return;
+          this._spawnWave();
+          this._scheduleNextSpawn();
+        }, randomDelay);
+      }
+
+      _spawnWave() {
+        const diff = this.currentDifficulty;
+        const freeHoles = this.holes.filter((h) => !h.occupied);
+        if (freeHoles.length === 0) return;
+
+        // Decide how many characters pop up at once (1 to maxSimultaneous)
+        const currentlyActive = this.holes.length - freeHoles.length;
+        const allowedNew = Math.max(0, diff.maxSimultaneous - currentlyActive);
+        if (allowedNew === 0) return;
+
+        // Weighted towards 1 or 2, occasionally 3+ for chaotic bursts
+        const roll = Math.random();
+        let spawnCount = 1;
+        if (roll > 0.72 && allowedNew >= 3) spawnCount = 3;
+        else if (roll > 0.35 && allowedNew >= 2) spawnCount = 2;
+
+        spawnCount = Math.min(spawnCount, freeHoles.length);
+
+        // Shuffle free holes so no two characters ever share a hole
+        const shuffledHoles = [...freeHoles].sort(() => Math.random() - 0.5);
+
+        for (let i = 0; i < spawnCount; i++) {
+          const hole = shuffledHoles[i];
+          const character = this._pickRandomCharacter();
+          this._emergeCharacter(hole, character);
+        }
+      }
+
+      _pickRandomCharacter() {
+        const chars = this.config.characters;
+        const totalWeight = chars.reduce((sum, c) => sum + (c.frequency || 1), 0);
+        let r = Math.random() * totalWeight;
+        for (const c of chars) {
+          r -= (c.frequency || 1);
+          if (r <= 0) return c;
+        }
+        return chars[0];
+      }
+
+      _emergeCharacter(hole, character) {
+        hole.occupied = true;
+        hole.character = character;
+        hole.alreadyHit = false;
+
+        // Configure image & per-character scale/offset
+        hole.imgEl.src = character.image;
+        hole.imgEl.alt = character.name;
+        hole.fallbackEl.textContent = character.name.toUpperCase();
+
+        const scale = character.scale || 1;
+        const ox = character.offsetX || 0;
+        const oy = character.offsetY || 0;
+        hole.imgEl.style.transform = `translate(${ox}px, ${oy}px) scale(${scale})`;
+
+        // Slight random variation in spring emergence speed
+        const speedMult = this.config.visuals.animationSpeedMultiplier || 1;
+        const emergeDurationMs = Math.round((110 + Math.random() * 55) / speedMult);
+
+        hole.unitEl.classList.remove("shot-hit", "idle-bob", "active");
+        hole.unitEl.style.transition = "none";
+        hole.unitEl.style.transform = "translateY(108%)";
+
+        // Force reflow before spring emergence
+        void hole.unitEl.offsetWidth;
+
+        hole.unitEl.classList.add("active");
+        hole.unitEl.style.transition = `transform ${emergeDurationMs}ms cubic-bezier(0.22, 1.35, 0.44, 1)`;
+        hole.unitEl.style.transform = "translateY(2%)";
+
+        // Play appearance audio cue
+        if (character.appearSound) {
+          this.sound.playSfx(character.appearSound);
+        }
+
+        // Start subtle idle sway once risen
+        setTimeout(() => {
+          if (hole.occupied && !hole.alreadyHit && this.isRunning) {
+            hole.unitEl.classList.add("idle-bob");
+          }
+        }, emergeDurationMs);
+
+        // Calculate visibility duration (occasionally introduce ultra-brief fake-out peeks)
+        const diff = this.currentDifficulty;
+        let stayDuration = diff.visibilityMs;
+        if (Math.random() < diff.flashChance) {
+          stayDuration = Math.max(95, Math.round(stayDuration * 0.62));
+        } else {
+          // Slight +/- 12% organic variance
+          stayDuration = Math.round(stayDuration * (0.88 + Math.random() * 0.24));
+        }
+
+        hole.retreatTimer = setTimeout(() => {
+          this._retreatCharacter(hole, false);
+        }, emergeDurationMs + stayDuration);
+      }
+
+      _retreatCharacter(hole, wasShot) {
+        if (!hole.occupied) return;
+
+        clearTimeout(hole.retreatTimer);
+        hole.unitEl.classList.remove("idle-bob", "active");
+
+        const retreatMs = wasShot ? 110 : 135;
+        if (!wasShot) {
+          this.sound.playSfx("disappear");
+          hole.unitEl.style.transition = `transform ${retreatMs}ms cubic-bezier(0.55, 0, 1, 0.45)`;
+          hole.unitEl.style.transform = "translateY(108%)";
+        }
+
+        hole.cleanupTimer = setTimeout(() => {
+          hole.occupied = false;
+          hole.character = null;
+          hole.alreadyHit = false;
+          hole.unitEl.classList.remove("shot-hit");
+          hole.unitEl.style.transition = "none";
+          hole.unitEl.style.transform = "translateY(108%)";
+        }, retreatMs + 15);
+      }
+
+      /* ------------------------------------------------------------------------
+         SHOOTING, COLLISION & COMBO MECHANICS
+         ------------------------------------------------------------------------ */
+      _handleShot(e) {
+        const x = e.clientX;
+        const y = e.clientY;
+
+        this.shotsFired++;
+        this.sound.playSfx("gunshot");
+
+        // Crosshair recoil & visual impact effects
+        this.dom.crosshair.classList.add("recoil");
+        setTimeout(() => this.dom.crosshair.classList.remove("recoil"), 90);
+        this._spawnMuzzleAndImpact(x, y);
+
+        // Accurate hit detection directly against active character elements
+        const hitUnit = e.target.closest(".character-unit.active");
+        if (!hitUnit) {
+          // Missed shot: no score penalty, reset combo
+          this.consecutiveHits = 0;
+          this.currentMultiplier = 1;
+          this.sound.playSfx("miss");
+          this._updateHud();
+          return;
+        }
+
+        const slotEl = hitUnit.closest(".hole-slot");
+        const holeIndex = parseInt(slotEl.dataset.holeIndex, 10);
+        const hole = this.holes[holeIndex];
+
+        // Prevent double-scoring on the same appearance
+        if (!hole || !hole.occupied || hole.alreadyHit || !hole.character) {
+          return;
+        }
+
+        hole.alreadyHit = true;
+        const char = hole.character;
+
+        // CHECK PROTECTED CAT RULE
+        if (char.type === "cat") {
+          hitUnit.classList.add("shot-hit");
+          this.triggerCatGameOver(char);
+          return;
+        }
+
+        // VALID HUMAN TARGET HIT
+        this.shotsHit++;
+        this.consecutiveHits++;
+        this.currentMultiplier = this._getMultiplierForHits(this.consecutiveHits);
+        if (this.currentMultiplier > this.highestCombo) {
+          this.highestCombo = this.currentMultiplier;
+        }
+
+        const pointsEarned = this.config.gameplay.basePoints * this.currentMultiplier;
+        this.score += pointsEarned;
+
+        // Audio & tactile feedback
+        this.sound.playSfx("hit");
+        if (this.currentMultiplier >= 2 && this.consecutiveHits % 2 === 0) {
+          this.sound.playSfx("combo");
+        }
+
+        hitUnit.classList.add("shot-hit");
+        this._shakeScreen(this.config.visuals.screenShakeIntensity, 110);
+        this._flashScreen("rgba(242, 236, 225, 0.12)", 75);
+
+        const label = this.currentMultiplier > 1
+          ? `+${pointsEarned} (${this.currentMultiplier}x)`
+          : `+${pointsEarned}`;
+        this._spawnFloatingText(x, y - 16, label, this.currentMultiplier > 1);
+
+        this._updateDifficultyTier();
+        this._updateHud();
+        this._retreatCharacter(hole, true);
+      }
+
+      _getMultiplierForHits(hits) {
+        let mult = 1;
+        for (const tier of this.config.gameplay.comboTiers) {
+          if (hits >= tier.hits) {
+            mult = tier.multiplier;
+          }
+        }
+        return mult;
+      }
+
+      _updateDifficultyTier() {
+        const levels = this.config.gameplay.difficultyLevels;
+        let chosen = levels[0];
+        for (const lvl of levels) {
+          if (this.score >= lvl.minScore) {
+            chosen = lvl;
+          }
+        }
+        this.currentDifficulty = chosen;
+      }
+
+      /* ------------------------------------------------------------------------
+         VISUAL FX HELPERS
+         ------------------------------------------------------------------------ */
+      _spawnMuzzleAndImpact(x, y) {
+        const flash = document.createElement("div");
+        flash.className = "muzzle-flash";
+        flash.style.left = `${x}px`;
+        flash.style.top = `${y}px`;
+        document.body.appendChild(flash);
+
+        const ring = document.createElement("div");
+        ring.className = "bullet-ring";
+        ring.style.left = `${x}px`;
+        ring.style.top = `${y}px`;
+        document.body.appendChild(ring);
+
+        setTimeout(() => {
+          flash.remove();
+          ring.remove();
+        }, 260);
+      }
+
+      _spawnFloatingText(x, y, text, isCombo) {
+        const el = document.createElement("div");
+        el.className = isCombo ? "floating-text combo" : "floating-text";
+        el.textContent = text;
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 680);
+      }
+
+      _shakeScreen(intensity, durationMs) {
+        const start = performance.now();
+        const animateShake = (now) => {
+          const elapsed = now - start;
+          if (elapsed >= durationMs) {
+            this.dom.wrapper.style.transform = "translate(0, 0)";
+            return;
+          }
+          const decay = 1 - elapsed / durationMs;
+          const dx = (Math.random() * 2 - 1) * intensity * decay;
+          const dy = (Math.random() * 2 - 1) * intensity * decay;
+          this.dom.wrapper.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+          requestAnimationFrame(animateShake);
+        };
+        requestAnimationFrame(animateShake);
+      }
+
+      _flashScreen(color, durationMs) {
+        this.dom.flash.style.backgroundColor = color;
+        this.dom.flash.style.opacity = "1";
+        setTimeout(() => {
+          this.dom.flash.style.opacity = "0";
+        }, durationMs);
+      }
+
+      /* ------------------------------------------------------------------------
+         HUD & LOCALSTORAGE PERSISTENCE
+         ------------------------------------------------------------------------ */
+      _calculateAccuracy() {
+        if (this.shotsFired === 0) return 100;
+        return Math.round((this.shotsHit / this.shotsFired) * 100);
+      }
+
+      _updateHud() {
+        const records = this._loadRecords();
+        const bestDisplay = Math.max(this.score, records.bestScore);
+
+        this.dom.hudScore.textContent = this.score;
+        this.dom.hudBest.textContent = bestDisplay;
+        this.dom.hudAccuracy.textContent = `${this._calculateAccuracy()}%`;
+        this.dom.diffPill.textContent = this.currentDifficulty.name;
+
+        this.dom.comboBadge.textContent = `${this.currentMultiplier}x COMBO`;
+        this.dom.comboBadge.classList.toggle("active", this.currentMultiplier > 1);
+      }
+
+      _loadRecords() {
+        try {
+          const raw = localStorage.getItem(this.STORAGE_KEY);
+          if (!raw) return { bestScore: 0, bestAccuracy: 0, bestCombo: 1 };
+          const parsed = JSON.parse(raw);
+          return {
+            bestScore: Number(parsed.bestScore) || 0,
+            bestAccuracy: Number(parsed.bestAccuracy) || 0,
+            bestCombo: Number(parsed.bestCombo) || 1
+          };
+        } catch (err) {
+          return { bestScore: 0, bestAccuracy: 0, bestCombo: 1 };
+        }
+      }
+
+      _saveRecords(score, accuracy, combo) {
+        try {
+          const current = this._loadRecords();
+          const updated = {
+            bestScore: Math.max(current.bestScore, score),
+            bestAccuracy: score > 0 ? Math.max(current.bestAccuracy, accuracy) : current.bestAccuracy,
+            bestCombo: Math.max(current.bestCombo, combo)
+          };
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+        } catch (err) {
+          // Ignore storage quota or private browsing errors gracefully
+        }
+      }
+
+      _refreshRecordDisplays() {
+        const rec = this._loadRecords();
+        this.dom.menuBestScore.textContent = rec.bestScore;
+        this.dom.menuBestAcc.textContent = `${rec.bestAccuracy}%`;
+        this.dom.menuBestCombo.textContent = `${rec.bestCombo}x`;
+        this.dom.hudBest.textContent = rec.bestScore;
+      }
+
+      _clearAllTimers() {
+        if (this.spawnLoopTimer) {
+          clearTimeout(this.spawnLoopTimer);
+          this.spawnLoopTimer = null;
+        }
+        this.holes.forEach((h) => {
+          clearTimeout(h.retreatTimer);
+          clearTimeout(h.cleanupTimer);
+        });
+      }
+
+      _resetAllHoles() {
+        this.holes.forEach((h) => {
+          h.occupied = false;
+          h.character = null;
+          h.alreadyHit = false;
+          h.unitEl.classList.remove("active", "idle-bob", "shot-hit");
+          h.unitEl.style.transition = "none";
+          h.unitEl.style.transform = "translateY(108%)";
+        });
+      }
+    }
+
+    // Boot Game on DOM Ready
+    window.addEventListener("DOMContentLoaded", () => {
+      window.gameInstance = new DontHurtTheCatsGame(GAME_CONFIG);
+    });
+  </script>
+</body>
+</html>
